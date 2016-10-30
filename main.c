@@ -26,7 +26,7 @@ void print_book_info(EB_Book* book) {
         }
     }
     else {
-        perror("\tError: failed to get book type\n");
+        fprintf(stderr, "\tError: failed to get book type\n");
     }
 
     EB_Character_Code char_code;
@@ -51,7 +51,7 @@ void print_book_info(EB_Book* book) {
         }
     }
     else {
-        perror("\tError: failed to get book character code\n");
+        fprintf(stderr, "\tError: failed to get book character code\n");
     }
 
     EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
@@ -69,7 +69,7 @@ void print_book_info(EB_Book* book) {
         }
     }
     else {
-        perror("\tError: could not get sub-book list\n");
+        fprintf(stderr, "\tError: could not get sub-book list\n");
     }
 }
 
@@ -80,7 +80,7 @@ int dump_book(EB_Book* book) {
 
     for (;;) {
         if (eb_seek_text(book, &position) != EB_SUCCESS) {
-            perror("Failed to seek\n");
+            fprintf(stderr, "Failed to seek\n");
             return 1;
         }
 
@@ -106,7 +106,7 @@ int dump_book(EB_Book* book) {
 
 int find_term(EB_Book* book, const char term[]) {
     if (eb_search_word(book, term) != EB_SUCCESS) {
-        perror("Error: search failed\n");
+        fprintf(stderr, "Error: search failed\n");
         return 1;
     }
 
@@ -116,7 +116,7 @@ int find_term(EB_Book* book, const char term[]) {
 
 
     if (eb_hit_list(book, MAX_HITS, hits, &hit_count) != EB_SUCCESS) {
-        perror("Error: could not get hit list\n");
+        fprintf(stderr, "Error: could not get hit list\n");
         return 1;
     }
 
@@ -135,6 +135,8 @@ int find_term(EB_Book* book, const char term[]) {
         char text[MAX_TEXT];
         ssize_t text_length;
 
+        /* book->subbook_current->word_asis.start_page */
+
         eb_seek_text(book, &hits[i].text);
         eb_read_text(book, NULL, NULL, NULL, MAX_TEXT, text, &text_length);
         printf("%s\n", text);
@@ -145,19 +147,19 @@ int find_term(EB_Book* book, const char term[]) {
 
 int process(const char path[]) {
     if (eb_initialize_library() != EB_SUCCESS) {
-        perror("error: failed to initialize library\n");
+        fprintf(stderr, "error: failed to initialize library\n");
         return 1;
     }
 
     EB_Book book;
     if (eb_bind(&book, path) != EB_SUCCESS) {
-        perror("error: failed to bind book\n");
+        fprintf(stderr, "error: failed to bind book\n");
         eb_finalize_book(&book);
         return 1;
     }
 
     if (eb_set_subbook(&book, 0) != EB_SUCCESS) {
-        perror("Failed to set sub-book\n");
+        fprintf(stderr, "Failed to set sub-book\n");
         eb_finalize_book(&book);
         return 1;
     }
