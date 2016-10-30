@@ -1,12 +1,14 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <eb/eb.h>
 #include <eb/error.h>
 
 void print_book_info(EB_Book * book) {
+    printf("Book info for %s:\n", book->path);
     EB_Disc_Code disc_code;
     if (eb_disc_type(book, &disc_code) == EB_SUCCESS) {
-        printf("book type: ");
+        printf("\tBook type: ");
         switch (disc_code) {
             case EB_DISC_EB:
                 printf("EB_DISC_EB\n");
@@ -23,12 +25,12 @@ void print_book_info(EB_Book * book) {
         }
     }
     else {
-        perror("error: failed to get book type\n");
+        perror("\tError: failed to get book type\n");
     }
 
     EB_Character_Code char_code;
     if (eb_character_code(book, &char_code) == EB_SUCCESS) {
-        printf("character type: ");
+        printf("\tCharacter type: ");
         switch (char_code) {
             case EB_CHARCODE_ISO8859_1:
                 printf("EB_CHARCODE_ISO8859_1\n");
@@ -48,32 +50,30 @@ void print_book_info(EB_Book * book) {
         }
     }
     else {
-        perror("error: failed to get book character code\n");
+        perror("\tError: failed to get book character code\n");
     }
 
     EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
     int sub_count = 0;
 
     if (eb_subbook_list(book, sub_codes, &sub_count) == EB_SUCCESS) {
+        printf("\tFound %d sub-book(s):\n", sub_count);
         char title[EB_MAX_TITLE_LENGTH + 1];
         for (int i = 0; i < sub_count; ++i) {
-            if (eb_subbook_title2(book, sub_codes[i], title) == EB_SUCCESS) {
-                printf("sub-book found: %d (%s)\n", sub_codes[i], title);
+            if (eb_subbook_title2(book, sub_codes[i], title) != EB_SUCCESS) {
+                strcpy(title, "<unknown>");
             }
-            else {
-                perror("error: could not get sub-book title\n");
-            }
+
+            printf("\t\t %d: %s\n", sub_codes[i], title);
         }
     }
     else {
-        perror("error: could not get sub-book list\n");
+        perror("\tError: could not get sub-book list\n");
     }
 
 }
 
 int dump(const char path[]) {
-    printf("processing dictionary: %s\n", path);
-
     if (eb_initialize_library() != EB_SUCCESS) {
         perror("error: failed to initialize library\n");
         return 1;
