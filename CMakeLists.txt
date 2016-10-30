@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.5)
 project(zero-epwing)
+include_directories(eb)
+link_directories(eb/eb/.libs)
 add_executable(zero-epwing main.c)
-target_link_libraries(zero-epwing eb)
+target_link_libraries(zero-epwing libeb.a libz.a)
