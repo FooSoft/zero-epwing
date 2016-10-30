@@ -1,0 +1,3 @@
+[submodule "eb"]
+	path = eb
+	url = https://github.com/FooSoft/eb.git
