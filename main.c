@@ -3,8 +3,9 @@
 
 #include <eb/eb.h>
 #include <eb/error.h>
+#include <eb/text.h>
 
-void print_book_info(EB_Book * book) {
+void print_book_info(EB_Book* book) {
     printf("Book info for %s:\n", book->path);
     EB_Disc_Code disc_code;
     if (eb_disc_type(book, &disc_code) == EB_SUCCESS) {
@@ -70,10 +71,79 @@ void print_book_info(EB_Book * book) {
     else {
         perror("\tError: could not get sub-book list\n");
     }
-
 }
 
-int dump(const char path[]) {
+int dump_book(EB_Book* book) {
+    EB_Position position;
+    position.offset = 0;
+    position.page = 1;
+
+    for (;;) {
+        if (eb_seek_text(book, &position) != EB_SUCCESS) {
+            perror("Failed to seek\n");
+            return 1;
+        }
+
+        const unsigned MAX_LENGTH = 10000;
+        char buffer[MAX_LENGTH + 1];
+        ssize_t text_length;
+
+        /* if (eb_read_text(book, NULL, NULL, NULL, MAX_LENGTH, buffer, &text_length) != EB_SUCCESS) { */
+        if (eb_read_heading(book, NULL, NULL, NULL, MAX_LENGTH, buffer, &text_length) != EB_SUCCESS) {
+            fprintf(stderr, "an error occurs.\n");
+            return 1;
+        }
+
+
+        puts(buffer);
+        getchar();
+        ++position.offset;
+    }
+
+
+    return 0;
+}
+
+int find_term(EB_Book* book, const char term[]) {
+    if (eb_search_word(book, term) != EB_SUCCESS) {
+        perror("Error: search failed\n");
+        return 1;
+    }
+
+    const unsigned MAX_HITS = 100;
+    EB_Hit hits[MAX_HITS];
+    int hit_count;
+
+
+    if (eb_hit_list(book, MAX_HITS, hits, &hit_count) != EB_SUCCESS) {
+        perror("Error: could not get hit list\n");
+        return 1;
+    }
+
+    printf("Found %d results\n", hit_count);
+
+    for (int i = 0; i < hit_count; ++i) {
+        /* const unsigned MAX_HEADING = 1000; */
+        /* char heading[MAX_HEADING]; */
+        /* ssize_t heading_length; */
+
+        /* eb_seek_text(book, &hits[i].heading); */
+        /* eb_read_heading(book, NULL, NULL, NULL, MAX_HEADING, heading, &heading_length); */
+        /* printf("%s\n", heading); */
+
+        const unsigned MAX_TEXT = 1000;
+        char text[MAX_TEXT];
+        ssize_t text_length;
+
+        eb_seek_text(book, &hits[i].text);
+        eb_read_text(book, NULL, NULL, NULL, MAX_TEXT, text, &text_length);
+        printf("%s\n", text);
+    }
+
+    return 0;
+}
+
+int process(const char path[]) {
     if (eb_initialize_library() != EB_SUCCESS) {
         perror("error: failed to initialize library\n");
         return 1;
@@ -86,7 +156,15 @@ int dump(const char path[]) {
         return 1;
     }
 
+    if (eb_set_subbook(&book, 0) != EB_SUCCESS) {
+        perror("Failed to set sub-book\n");
+        eb_finalize_book(&book);
+        return 1;
+    }
+
     print_book_info(&book);
+    find_term(&book, "computer");
+    /* dump_book(&book); */
 
     eb_finalize_book(&book);
     eb_finalize_library();
@@ -99,5 +177,5 @@ int main(int argc, char *argv[]) {
         return 2;
     }
 
-    return dump(argv[1]);
+    return process(argv[1]);
 }
