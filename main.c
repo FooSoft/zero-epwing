@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <iconv.h>
 #include <string.h>
+#include <errno.h>
 #include <stdlib.h>
 
 #include "eb/eb/eb.h"
@@ -73,29 +74,95 @@ void array_free(Array* arr) {
     Local functions
 */
 
-static const char * eucjp_to_utf8(const char src[]) {
-    char src_buff[MAX_ENTRY_TEXT];
-    size_t src_size = strlen(src);
-    char * src_ptr = src_buff;
-    memcpy(src_buff, src, src_size + 1);
+// From https://stackoverflow.com/questions/2162390/iconv-encoding-conversion-problem
 
-    static char dst_buff[MAX_ENTRY_TEXT];
-    size_t dst_size = MAX_ENTRY_TEXT;
-    char * dst_ptr = dst_buff;
-    *dst_buff = 0;
+static char * convert (const char *from_charset, const char *to_charset, const char *input) {
+    size_t inleft, outleft, converted = 0;
+    char *output, *outbuf, *tmp;
+    const char *inbuf;
+    size_t outlen;
+    iconv_t cd;
 
-    iconv_t conv = iconv_open("UTF-8", "EUC-JP");
-    if (conv != (iconv_t)-1) {
-        if (iconv(conv, &src_ptr, &src_size, &dst_ptr, &dst_size) == (size_t)-1) {
-            printf("error");
+    if ((cd = iconv_open (to_charset, from_charset)) == (iconv_t) -1)
+        return NULL;
+
+    inleft = strlen (input);
+    inbuf = input;
+
+    /* we'll start off allocating an output buffer which is the same size
+     * as our input buffer. */
+    outlen = inleft;
+
+    /* we allocate 4 bytes more than what we need for nul-termination... */
+    if (!(output = malloc (outlen + 4))) {
+        iconv_close (cd);
+        return NULL;
+    }
+
+    do {
+        errno = 0;
+        outbuf = output + converted;
+        outleft = outlen - converted;
+
+        converted = iconv (cd, (char **) &inbuf, &inleft, &outbuf, &outleft);
+        if (converted != (size_t) -1 || errno == EINVAL) {
+            /*
+             * EINVAL  An  incomplete  multibyte sequence has been encoun­-
+             *         tered in the input.
+             *
+             * We'll just truncate it and ignore it.
+             */
+            break;
         }
-    }
-    else {
-        printf("poop");
-    }
 
-    iconv_close(conv);
-    return dst_buff;
+        if (errno != E2BIG) {
+            /*
+             * EILSEQ An invalid multibyte sequence has been  encountered
+             *        in the input.
+             *
+             * Bad input, we can't really recover from this. 
+             */
+            iconv_close (cd);
+            free (output);
+            return NULL;
+        }
+
+        /*
+         * E2BIG   There is not sufficient room at *outbuf.
+         *
+         * We just need to grow our outbuffer and try again.
+         */
+
+        converted = outbuf - output;
+        outlen += inleft * 2 + 8;
+
+        if (!(tmp = realloc (output, outlen + 4))) {
+            iconv_close (cd);
+            free (output);
+            return NULL;
+        }
+
+        output = tmp;
+        outbuf = output + converted;
+    } while (1);
+
+    /* flush the iconv conversion */
+    iconv (cd, NULL, NULL, &outbuf, &outleft);
+    iconv_close (cd);
+
+    /* Note: not all charsets can be nul-terminated with a single
+     * nul byte. UCS2, for example, needs 2 nul bytes and UCS4
+     * needs 4. I hope that 4 nul bytes is enough to terminate all
+     * multibyte charsets? */
+
+    /* nul-terminate the string */
+    memset (outbuf, 0, 4);
+
+    return output;
+}
+
+static const char * eucjp_to_utf8(const char src[]) {
+    return convert("EUC-JP", "UTF-8", src);
 }
 
 static void dump_hits(EB_Book* book) {
@@ -116,7 +183,8 @@ static void dump_hits(EB_Book* book) {
             eb_read_text(book, NULL, NULL, NULL, MAX_ENTRY_TEXT, text, &text_length);
 
             const char* text_utf8 = eucjp_to_utf8(text);
-            (void) text_utf8;
+            puts(text_utf8);
+            /* (void) text_utf8; */
         }
     }
     while (hit_count > 0);
