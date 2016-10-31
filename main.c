@@ -1,177 +1,103 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <eb/eb.h>
-#include <eb/error.h>
-#include <eb/text.h>
+#include "eb/eb/eb.h"
+#include "eb/eb/error.h"
+#include "eb/eb/text.h"
 
-void print_book_info(EB_Book* book) {
-    printf("Book info for %s:\n", book->path);
-    EB_Disc_Code disc_code;
-    if (eb_disc_type(book, &disc_code) == EB_SUCCESS) {
-        printf("\tBook type: ");
-        switch (disc_code) {
-            case EB_DISC_EB:
-                printf("EB_DISC_EB\n");
-                break;
-            case EB_DISC_EPWING:
-                printf("EB_DISC_EPWING\n");
-                break;
-            case EB_DISC_INVALID:
-                printf("EB_DISC_INVALID\n");
-                break;
-            default:
-                printf("undefined\n");
-                break;
+/* Constants */
+
+const unsigned MAX_ENTRY_HITS = 128;
+const unsigned MAX_ENTRY_TEXT = 1024;
+
+/* Local functions */
+
+static void dump_hits(EB_Book* book) {
+    EB_Hit hits[MAX_ENTRY_HITS];
+    int hit_count = 0;
+
+    do {
+        if (eb_hit_list(book, MAX_ENTRY_HITS, hits, &hit_count) != EB_SUCCESS) {
+            fprintf(stderr, "error: could not get hit list\n");
+            break;
+        }
+
+        for (int i = 0; i < hit_count; ++i) {
+            char text[MAX_ENTRY_TEXT];
+            ssize_t text_length;
+
+            eb_seek_text(book, &hits[i].text);
+            eb_read_text(book, NULL, NULL, NULL, MAX_ENTRY_TEXT, text, &text_length);
+
+            puts(text);
         }
     }
-    else {
-        fprintf(stderr, "\tError: failed to get book type\n");
-    }
+    while (hit_count > 0);
+}
 
-    EB_Character_Code char_code;
-    if (eb_character_code(book, &char_code) == EB_SUCCESS) {
-        printf("\tCharacter type: ");
-        switch (char_code) {
-            case EB_CHARCODE_ISO8859_1:
-                printf("EB_CHARCODE_ISO8859_1\n");
-                break;
-            case EB_CHARCODE_JISX0208:
-                printf("EB_CHARCODE_JISX0208\n");
-                break;
-            case EB_CHARCODE_JISX0208_GB2312:
-                printf("EB_CHARCODE_JISX0208_GB2312\n");
-                break;
-            case EB_CHARCODE_INVALID:
-                printf("EB_CHARCODE_INVALID\n");
-                break;
-            default:
-                printf("undefined\n");
-                break;
-        }
+static void dump_book(EB_Book* book) {
+    if (eb_search_all_alphabet(book) == EB_SUCCESS) {
+        dump_hits(book);
     }
     else {
-        fprintf(stderr, "\tError: failed to get book character code\n");
+        printf("notice: skiping alphabet search\n");
     }
 
-    EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
-    int sub_count = 0;
-
-    if (eb_subbook_list(book, sub_codes, &sub_count) == EB_SUCCESS) {
-        printf("\tFound %d sub-book(s):\n", sub_count);
-        char title[EB_MAX_TITLE_LENGTH + 1];
-        for (int i = 0; i < sub_count; ++i) {
-            if (eb_subbook_title2(book, sub_codes[i], title) != EB_SUCCESS) {
-                strcpy(title, "<unknown>");
-            }
-
-            printf("\t\t %d: %s\n", sub_codes[i], title);
-        }
+    if (eb_search_all_kana(book) == EB_SUCCESS) {
+        dump_hits(book);
     }
     else {
-        fprintf(stderr, "\tError: could not get sub-book list\n");
+        printf("notice: skiping kana search\n");
+    }
+
+    if (eb_search_all_asis(book) == EB_SUCCESS) {
+        dump_hits(book);
+    }
+    else {
+        printf("notice: skiping asis search\n");
     }
 }
 
-int dump_book(EB_Book* book) {
-    EB_Position position;
-    position.offset = 0;
-    position.page = 1;
-
-    for (;;) {
-        if (eb_seek_text(book, &position) != EB_SUCCESS) {
-            fprintf(stderr, "Failed to seek\n");
-            return 1;
-        }
-
-        const unsigned MAX_LENGTH = 10000;
-        char buffer[MAX_LENGTH + 1];
-        ssize_t text_length;
-
-        /* if (eb_read_text(book, NULL, NULL, NULL, MAX_LENGTH, buffer, &text_length) != EB_SUCCESS) { */
-        if (eb_read_heading(book, NULL, NULL, NULL, MAX_LENGTH, buffer, &text_length) != EB_SUCCESS) {
-            fprintf(stderr, "an error occurs.\n");
-            return 1;
-        }
-
-
-        puts(buffer);
-        getchar();
-        ++position.offset;
-    }
-
-
-    return 0;
-}
-
-int find_term(EB_Book* book, const char term[]) {
-    if (eb_search_word(book, term) != EB_SUCCESS) {
-        fprintf(stderr, "Error: search failed\n");
-        return 1;
-    }
-
-    const unsigned MAX_HITS = 100;
-    EB_Hit hits[MAX_HITS];
-    int hit_count;
-
-
-    if (eb_hit_list(book, MAX_HITS, hits, &hit_count) != EB_SUCCESS) {
-        fprintf(stderr, "Error: could not get hit list\n");
-        return 1;
-    }
-
-    printf("Found %d results\n", hit_count);
-
-    for (int i = 0; i < hit_count; ++i) {
-        /* const unsigned MAX_HEADING = 1000; */
-        /* char heading[MAX_HEADING]; */
-        /* ssize_t heading_length; */
-
-        /* eb_seek_text(book, &hits[i].heading); */
-        /* eb_read_heading(book, NULL, NULL, NULL, MAX_HEADING, heading, &heading_length); */
-        /* printf("%s\n", heading); */
-
-        const unsigned MAX_TEXT = 1000;
-        char text[MAX_TEXT];
-        ssize_t text_length;
-
-        /* book->subbook_current->word_asis.start_page */
-
-        eb_seek_text(book, &hits[i].text);
-        eb_read_text(book, NULL, NULL, NULL, MAX_TEXT, text, &text_length);
-        printf("%s\n", text);
-    }
-
-    return 0;
-}
-
-int process(const char path[]) {
+static int process(const char path[]) {
     if (eb_initialize_library() != EB_SUCCESS) {
         fprintf(stderr, "error: failed to initialize library\n");
         return 1;
     }
 
     EB_Book book;
-    if (eb_bind(&book, path) != EB_SUCCESS) {
-        fprintf(stderr, "error: failed to bind book\n");
-        eb_finalize_book(&book);
-        return 1;
-    }
+    eb_initialize_book(&book);
 
-    if (eb_set_subbook(&book, 0) != EB_SUCCESS) {
-        fprintf(stderr, "Failed to set sub-book\n");
-        eb_finalize_book(&book);
-        return 1;
-    }
+    do {
+        if (eb_bind(&book, path) != EB_SUCCESS) {
+            fprintf(stderr, "error: failed to bind book\n");
+            break;
+        }
 
-    print_book_info(&book);
-    find_term(&book, "computer");
-    /* dump_book(&book); */
+        EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
+        int sub_count = 0;
+
+        if (eb_subbook_list(&book, sub_codes, &sub_count) != EB_SUCCESS) {
+            fprintf(stderr, "error: failed to get sub-book list\n");
+            break;
+        }
+
+        for (int i = 0; i < sub_count; ++i) {
+            if (eb_set_subbook(&book, sub_codes[i]) == EB_SUCCESS) {
+                dump_book(&book);
+            }
+            else {
+                fprintf(stderr, "error: failed to set sub-book\n");
+            }
+        }
+    }
+    while (0);
 
     eb_finalize_book(&book);
     eb_finalize_library();
     return 0;
 }
+
+/* Entry point */
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
