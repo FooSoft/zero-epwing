@@ -1,16 +1,84 @@
 #include <stdio.h>
+#include <iconv.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "eb/eb/eb.h"
 #include "eb/eb/error.h"
 #include "eb/eb/text.h"
 
-/* Constants */
+/*
+   Constants
+*/
 
-const unsigned MAX_ENTRY_HITS = 128;
-const unsigned MAX_ENTRY_TEXT = 1024;
+#define MAX_ENTRY_HITS 128
+#define MAX_ENTRY_TEXT 1024
+#define MAX_ENTRY_HEADER 512
 
-/* Local functions */
+/*
+    Array functions
+*/
+
+typedef struct {
+    char header[MAX_ENTRY_HEADER];
+    char text[MAX_ENTRY_TEXT];
+} Entry;
+
+typedef struct {
+    Entry* ptr;
+    size_t used;
+    size_t size;
+} Array;
+
+void array_init(Array* arr, size_t init_size) {
+    arr->ptr = (Entry *)malloc(init_size * sizeof(Entry));
+    arr->used = 0;
+    arr->size = init_size;
+}
+
+Entry* array_new(Array* arr) {
+    if (arr->used == arr->size) {
+        arr->size *= 2;
+        arr->ptr = (Entry *)realloc(arr->ptr, arr->size * sizeof(Entry));
+    }
+
+    return &arr->ptr[arr->used++];
+}
+
+void array_free(Array* arr) {
+    free(arr->ptr);
+    arr->ptr = NULL;
+    arr->used = arr->size = 0;
+}
+
+/*
+    Local functions
+*/
+
+static const char * eucjp_to_utf8(const char src[]) {
+    char src_buff[MAX_ENTRY_TEXT];
+    size_t src_size = strlen(src);
+    char * src_ptr = src_buff;
+    memcpy(src_buff, src, src_size + 1);
+
+    static char dst_buff[MAX_ENTRY_TEXT];
+    size_t dst_size = MAX_ENTRY_TEXT;
+    char * dst_ptr = dst_buff;
+    *dst_buff = 0;
+
+    iconv_t conv = iconv_open("UTF-8", "EUC-JP");
+    if (conv != (iconv_t)-1) {
+        if (iconv(conv, &src_ptr, &src_size, &dst_ptr, &dst_size) == (size_t)-1) {
+            printf("error");
+        }
+    }
+    else {
+        printf("poop");
+    }
+
+    iconv_close(conv);
+    return dst_buff;
+}
 
 static void dump_hits(EB_Book* book) {
     EB_Hit hits[MAX_ENTRY_HITS];
@@ -24,12 +92,12 @@ static void dump_hits(EB_Book* book) {
 
         for (int i = 0; i < hit_count; ++i) {
             char text[MAX_ENTRY_TEXT];
-            ssize_t text_length;
+            ssize_t text_length = 0;
 
             eb_seek_text(book, &hits[i].text);
             eb_read_text(book, NULL, NULL, NULL, MAX_ENTRY_TEXT, text, &text_length);
 
-            puts(text);
+            puts(eucjp_to_utf8(text));
         }
     }
     while (hit_count > 0);
@@ -97,7 +165,9 @@ static int process(const char path[]) {
     return 0;
 }
 
-/* Entry point */
+/*
+    Entry point
+*/
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
