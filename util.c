@@ -18,19 +18,19 @@
 
 #include "util.h"
 
-void array_init(Array* arr, size_t init_size) {
-    arr->ptr = (Entry *)malloc(init_size * sizeof(Entry));
+void array_init(Array* arr, size_t size) {
+    arr->ptr = calloc(size, sizeof(void*));
     arr->used = 0;
-    arr->size = init_size;
+    arr->size = size;
 }
 
-Entry* array_new(Array* arr) {
+void array_push(Array* arr, void* data) {
     if (arr->used == arr->size) {
         arr->size *= 2;
-        arr->ptr = (Entry *)realloc(arr->ptr, arr->size * sizeof(Entry));
+        arr->ptr = realloc(arr->ptr, arr->size * sizeof(void*));
     }
 
-    return &arr->ptr[arr->used++];
+    arr->ptr[arr->used++] = data;
 }
 
 void array_free(Array* arr) {

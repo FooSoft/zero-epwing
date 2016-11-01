@@ -22,18 +22,13 @@
 #include <stdlib.h>
 
 typedef struct {
-    char* header;
-    char* text;
-} Entry;
-
-typedef struct {
-    Entry* ptr;
+    void** ptr;
     size_t used;
     size_t size;
 } Array;
 
-void array_init(Array* arr, size_t init_size);
-Entry* array_new(Array* arr);
+void array_init(Array* arr, size_t size);
+void array_push(Array* arr, void* data);
 void array_free(Array* arr);
 
 #endif
