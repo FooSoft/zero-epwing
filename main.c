@@ -30,8 +30,8 @@
 #include "eb/eb/text.h"
 
 #define MAX_ENTRY_HITS 128
-#define MAX_ENTRY_TEXT 1024
-#define MAX_ENTRY_HEADER 512
+#define MAX_TEXT 1024
+#define MAX_HEADING 512
 
 static void dump_hits(EB_Book* book) {
     EB_Hit hits[MAX_ENTRY_HITS];
@@ -44,11 +44,11 @@ static void dump_hits(EB_Book* book) {
         }
 
         for (int i = 0; i < hit_count; ++i) {
-            char text[MAX_ENTRY_TEXT];
+            char text[MAX_TEXT];
             ssize_t text_length = 0;
 
             eb_seek_text(book, &hits[i].text);
-            eb_read_text(book, NULL, NULL, NULL, MAX_ENTRY_TEXT, text, &text_length);
+            eb_read_text(book, NULL, NULL, NULL, MAX_TEXT, text, &text_length);
 
             const char* text_utf8 = eucjp_to_utf8(text);
             if (text_utf8 != NULL) {
@@ -84,12 +84,50 @@ static void dump_book(EB_Book* book) {
     }
 }
 
-static int export(const char path[]) {
-    Book book_data = {};
+static char* read_book_text(EB_Book* book, const EB_Position* position) {
+    if (eb_seek_text(book, position) != EB_SUCCESS) {
+        return NULL;
+    }
 
+    char text[MAX_TEXT + 1];
+    ssize_t text_length = 0;
+
+    if (eb_read_text(book, NULL, NULL, NULL, MAX_TEXT, text, &text_length) != EB_SUCCESS) {
+        return NULL;
+    }
+
+    return eucjp_to_utf8(text);
+}
+
+static char* read_book_heading(EB_Book* book, const EB_Position* position) {
+    if (eb_seek_text(book, position) != EB_SUCCESS) {
+        return NULL;
+    }
+
+    char heading[MAX_TEXT + 1];
+    ssize_t heading_length = 0;
+
+    if (eb_read_heading(book, NULL, NULL, NULL, MAX_TEXT, heading, &heading_length) != EB_SUCCESS) {
+        return NULL;
+    }
+
+    return eucjp_to_utf8(heading);
+}
+
+static void export_subbook(EB_Book* book, Subbook* subbook_data) {
+    if (eb_have_copyright(book)) {
+        EB_Position position;
+        if (eb_copyright(book, &position) == EB_SUCCESS) {
+            subbook_data->copyright = read_book_text(book, &position);
+            puts(subbook_data->copyright);
+        }
+    }
+}
+
+static void export_book(const char path[], Book* book_data) {
     do {
         if (eb_initialize_library() != EB_SUCCESS) {
-            strcpy(book_data.error, "failed to initialize library");
+            strcpy(book_data->error, "failed to initialize library");
             break;
         }
 
@@ -97,7 +135,8 @@ static int export(const char path[]) {
         eb_initialize_book(&book);
 
         if (eb_bind(&book, path) != EB_SUCCESS) {
-            strcpy(book_data.error, "failed to bind book to path");
+            strcpy(book_data->error, "failed to bind book to path");
+            eb_finalize_book(&book);
             eb_finalize_library();
             break;
         }
@@ -106,65 +145,64 @@ static int export(const char path[]) {
         if (eb_character_code(&book, &character_code) == EB_SUCCESS) {
             switch (character_code) {
                 case EB_CHARCODE_ISO8859_1:
-                    strcpy(book_data.character_code, "iso 8859-1");
+                    strcpy(book_data->character_code, "iso 8859-1");
                     break;
                 case EB_CHARCODE_JISX0208:
-                    strcpy(book_data.character_code, "jis x 0208");
+                    strcpy(book_data->character_code, "jis x 0208");
                     break;
                 case EB_CHARCODE_JISX0208_GB2312:
-                    strcpy(book_data.character_code, "jis x 0208 / gb 2312");
+                    strcpy(book_data->character_code, "jis x 0208 / gb 2312");
                     break;
                 default:
-                    strcpy(book_data.character_code, "invalid");
+                    strcpy(book_data->character_code, "invalid");
                     break;
             }
-        }
-        else {
-            strcpy(book_data.character_code, "error");
         }
 
         EB_Disc_Code disc_code;
         if (eb_disc_type(&book, &disc_code) == EB_SUCCESS) {
             switch (disc_code) {
                 case EB_DISC_EB:
-                    strcpy(book_data.disc_code, "eb");
+                    strcpy(book_data->disc_code, "eb");
                     break;
                 case EB_DISC_EPWING:
-                    strcpy(book_data.disc_code, "epwing");
+                    strcpy(book_data->disc_code, "epwing");
                     break;
                 default:
-                    strcpy(book_data.disc_code, "invalid");
+                    strcpy(book_data->disc_code, "invalid");
                     break;
             }
         }
-        else {
-            strcpy(book_data.disc_code, "error");
-        }
-
 
         EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
-        int sub_count = 0;
-
-        if (eb_subbook_list(&book, sub_codes, &sub_count) != EB_SUCCESS) {
-            fprintf(stderr, "error: failed to get sub-book list\n");
+        if (eb_subbook_list(&book, sub_codes, &book_data->subbook_count) != EB_SUCCESS) {
+            eb_finalize_book(&book);
+            eb_finalize_library();
             break;
         }
 
-        for (int i = 0; i < sub_count; ++i) {
-            if (eb_set_subbook(&book, sub_codes[i]) == EB_SUCCESS) {
-                dump_book(&book);
-            }
-            else {
-                fprintf(stderr, "error: failed to set sub-book\n");
-            }
-        }
+
+
+        /* int sub_count = 0; */
+
+        /* if (eb_subbook_list(&book, sub_codes, &sub_count) != EB_SUCCESS) { */
+        /*     fprintf(stderr, "error: failed to get sub-book list\n"); */
+        /*     break; */
+        /* } */
+
+        /* for (int i = 0; i < sub_count; ++i) { */
+        /*     if (eb_set_subbook(&book, sub_codes[i]) == EB_SUCCESS) { */
+        /*         dump_book(&book); */
+        /*     } */
+        /*     else { */
+        /*         fprintf(stderr, "error: failed to set sub-book\n"); */
+        /*     } */
+        /* } */
 
         eb_finalize_book(&book);
         eb_finalize_library();
     }
     while(0);
-
-    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -173,5 +211,8 @@ int main(int argc, char *argv[]) {
         return 2;
     }
 
-    return export(argv[1]);
+    Book book_data = {};
+    export_book(argv[1], &book_data);
+
+    return 1;
 }

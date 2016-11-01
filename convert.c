@@ -109,6 +109,6 @@ static char * convert (const char *from_charset, const char *to_charset, const c
     return output;
 }
 
-const char * eucjp_to_utf8(const char src[]) {
+char* eucjp_to_utf8(const char src[]) {
     return convert("EUC-JP", "UTF-8", src);
 }

@@ -28,6 +28,11 @@
 typedef struct {
     char* heading;
     char* text;
+} TextBlock;
+
+typedef struct {
+    char* heading;
+    char* text;
     char* error;
 
     int page;
@@ -36,6 +41,7 @@ typedef struct {
 
 typedef struct {
     char* title;
+    char* copyright;
     char* error;
 
     Entry* entries;
@@ -43,9 +49,8 @@ typedef struct {
 } Subbook;
 
 typedef struct {
-    char character_code[256];
-    char disc_code[256];
-    char copyright;
+    char  character_code[256];
+    char  disc_code[256];
 
     Subbook* subbooks;
     int      subbook_count;
