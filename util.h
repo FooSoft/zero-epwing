@@ -21,6 +21,42 @@
 
 #include <stdlib.h>
 
+/*
+   Dictionary structures
+*/
+
+typedef struct {
+    char* heading;
+    char* text;
+    char* error;
+
+    int page;
+    int offset;
+} Entry;
+
+typedef struct {
+    char* title;
+    char* error;
+
+    Entry* entries;
+    int    entry_count;
+} Subbook;
+
+typedef struct {
+    char character_code[256];
+    char disc_code[256];
+    char copyright;
+
+    Subbook* subbooks;
+    int      subbook_count;
+
+    char error[256];
+} Book;
+
+/*
+   Array
+*/
+
 typedef struct {
     void** ptr;
     size_t used;

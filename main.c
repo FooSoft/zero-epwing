@@ -16,7 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _BSD_SOURCE
+
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "convert.h"
 #include "util.h"
@@ -80,20 +84,63 @@ static void dump_book(EB_Book* book) {
     }
 }
 
-static int process(const char path[]) {
-    if (eb_initialize_library() != EB_SUCCESS) {
-        fprintf(stderr, "error: failed to initialize library\n");
-        return 1;
-    }
-
-    EB_Book book;
-    eb_initialize_book(&book);
+static int export(const char path[]) {
+    Book book_data = {};
 
     do {
-        if (eb_bind(&book, path) != EB_SUCCESS) {
-            fprintf(stderr, "error: failed to bind book\n");
+        if (eb_initialize_library() != EB_SUCCESS) {
+            strcpy(book_data.error, "failed to initialize library");
             break;
         }
+
+        EB_Book book;
+        eb_initialize_book(&book);
+
+        if (eb_bind(&book, path) != EB_SUCCESS) {
+            strcpy(book_data.error, "failed to bind book to path");
+            eb_finalize_library();
+            break;
+        }
+
+        EB_Character_Code character_code;
+        if (eb_character_code(&book, &character_code) == EB_SUCCESS) {
+            switch (character_code) {
+                case EB_CHARCODE_ISO8859_1:
+                    strcpy(book_data.character_code, "iso 8859-1");
+                    break;
+                case EB_CHARCODE_JISX0208:
+                    strcpy(book_data.character_code, "jis x 0208");
+                    break;
+                case EB_CHARCODE_JISX0208_GB2312:
+                    strcpy(book_data.character_code, "jis x 0208 / gb 2312");
+                    break;
+                default:
+                    strcpy(book_data.character_code, "invalid");
+                    break;
+            }
+        }
+        else {
+            strcpy(book_data.character_code, "error");
+        }
+
+        EB_Disc_Code disc_code;
+        if (eb_disc_type(&book, &disc_code) == EB_SUCCESS) {
+            switch (disc_code) {
+                case EB_DISC_EB:
+                    strcpy(book_data.disc_code, "eb");
+                    break;
+                case EB_DISC_EPWING:
+                    strcpy(book_data.disc_code, "epwing");
+                    break;
+                default:
+                    strcpy(book_data.disc_code, "invalid");
+                    break;
+            }
+        }
+        else {
+            strcpy(book_data.disc_code, "error");
+        }
+
 
         EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
         int sub_count = 0;
@@ -111,11 +158,12 @@ static int process(const char path[]) {
                 fprintf(stderr, "error: failed to set sub-book\n");
             }
         }
-    }
-    while (0);
 
-    eb_finalize_book(&book);
-    eb_finalize_library();
+        eb_finalize_book(&book);
+        eb_finalize_library();
+    }
+    while(0);
+
     return 0;
 }
 
@@ -125,5 +173,5 @@ int main(int argc, char *argv[]) {
         return 2;
     }
 
-    return process(argv[1]);
+    return export(argv[1]);
 }
