@@ -20,6 +20,7 @@
 #define UTIL_H
 
 #include <stdlib.h>
+#include "eb/eb/eb.h"
 
 /*
    Dictionary structures
@@ -32,8 +33,12 @@ typedef struct {
 
 typedef struct {
     char* heading;
+    int   heading_page;
+    int   heading_offset;
+
     char* text;
-    char* error;
+    int   text_page;
+    int   text_offset;
 
     int page;
     int offset;
@@ -42,15 +47,16 @@ typedef struct {
 typedef struct {
     char* title;
     char* copyright;
-    char* error;
 
     Entry* entries;
     int    entry_count;
+
+    char error[256];
 } Subbook;
 
 typedef struct {
-    char  character_code[256];
-    char  disc_code[256];
+    char character_code[256];
+    char disc_code[256];
 
     Subbook* subbooks;
     int      subbook_count;

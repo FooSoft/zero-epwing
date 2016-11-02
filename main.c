@@ -141,7 +141,6 @@ static void export_book(const char path[], Book* book_data) {
 
         EB_Book book;
         eb_initialize_book(&book);
-
         if ((error = eb_bind(&book, path)) != EB_SUCCESS) {
             strcpy(book_data->error, eb_error_message(error));
             eb_finalize_book(&book);
@@ -161,9 +160,6 @@ static void export_book(const char path[], Book* book_data) {
                 case EB_CHARCODE_JISX0208_GB2312:
                     strcpy(book_data->character_code, "jisx0208/gb2312");
                     break;
-                default:
-                    strcpy(book_data->character_code, "invalid");
-                    break;
             }
         }
 
@@ -175,9 +171,6 @@ static void export_book(const char path[], Book* book_data) {
                     break;
                 case EB_DISC_EPWING:
                     strcpy(book_data->disc_code, "epwing");
-                    break;
-                default:
-                    strcpy(book_data->disc_code, "invalid");
                     break;
             }
         }
