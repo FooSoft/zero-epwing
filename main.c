@@ -89,30 +89,43 @@ static void dump_book(EB_Book* book) {
     }
 }
 
-static char* read_book(EB_Book* book, const EB_Position* position, ReadMode mode) {
+static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
 
     char data[1024];
     ssize_t data_length = 0;
+    EB_Error_Code error;
 
     switch (mode) {
         case READ_MODE_TEXT:
-            if (eb_read_text(book, NULL, NULL, NULL, 1023, data, &data_length) != EB_SUCCESS) {
-                return NULL;
-            }
+            error = eb_read_text(
+                book,
+                NULL,
+                NULL,
+                NULL,
+                1023,
+                data,
+                &data_length
+            );
             break;
         case READ_MODE_HEADING:
-            if (eb_read_heading(book, NULL, NULL, NULL, 1023, data, &data_length) != EB_SUCCESS) {
-                return NULL;
-            }
+            error = eb_read_heading(
+                book,
+                NULL,
+                NULL,
+                NULL,
+                1023,
+                data,
+                &data_length
+            );
             break;
         default:
             return NULL;
     }
 
-    return eucjp_to_utf8(data);
+    return error == EB_SUCCESS ? eucjp_to_utf8(data) : NULL;
 }
 
 static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
@@ -124,7 +137,7 @@ static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = read_book(eb_book, &position, READ_MODE_TEXT);
+            subbook->copyright = read_book_data(eb_book, &position, READ_MODE_TEXT);
         }
     }
 }
