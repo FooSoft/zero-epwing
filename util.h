@@ -41,9 +41,6 @@ typedef struct {
     char* text;
     int   text_page;
     int   text_offset;
-
-    int page;
-    int offset;
 } Entry;
 
 typedef struct {
@@ -52,6 +49,7 @@ typedef struct {
 
     Entry* entries;
     int    entry_count;
+    int    entry_cap;
 
     char error[MAX_ERROR];
 } Subbook;
@@ -65,19 +63,5 @@ typedef struct {
 
     char error[MAX_ERROR];
 } Book;
-
-/*
-   Array
-*/
-
-typedef struct {
-    void** ptr;
-    size_t used;
-    size_t size;
-} Array;
-
-void array_init(Array* arr, size_t size);
-void array_push(Array* arr, void* data);
-void array_free(Array* arr);
 
 #endif

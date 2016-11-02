@@ -29,72 +29,20 @@
 #include "eb/eb/error.h"
 #include "eb/eb/text.h"
 
-#define MAX_ENTRY_HITS 128
+#define MAX_HITS 128
 #define MAX_TEXT 1024
-#define MAX_HEADING 512
 
 typedef enum {
     READ_MODE_TEXT,
     READ_MODE_HEADING,
 } ReadMode;
 
-static void dump_hits(EB_Book* book) {
-    EB_Hit hits[MAX_ENTRY_HITS];
-    int hit_count = 0;
-
-    do {
-        if (eb_hit_list(book, MAX_ENTRY_HITS, hits, &hit_count) != EB_SUCCESS) {
-            fprintf(stderr, "error: could not get hit list\n");
-            break;
-        }
-
-        for (int i = 0; i < hit_count; ++i) {
-            char text[MAX_TEXT];
-            ssize_t text_length = 0;
-
-            eb_seek_text(book, &hits[i].text);
-            eb_read_text(book, NULL, NULL, NULL, MAX_TEXT, text, &text_length);
-
-            const char* text_utf8 = eucjp_to_utf8(text);
-            if (text_utf8 != NULL) {
-                puts(text_utf8);
-            }
-
-            /* (void) text_utf8; */
-        }
-    }
-    while (hit_count > 0);
-}
-
-static void dump_book(EB_Book* book) {
-    if (eb_search_all_alphabet(book) == EB_SUCCESS) {
-        dump_hits(book);
-    }
-    else {
-        printf("notice: skiping alphabet search\n");
-    }
-
-    if (eb_search_all_kana(book) == EB_SUCCESS) {
-        dump_hits(book);
-    }
-    else {
-        printf("notice: skiping kana search\n");
-    }
-
-    if (eb_search_all_asis(book) == EB_SUCCESS) {
-        dump_hits(book);
-    }
-    else {
-        printf("notice: skiping asis search\n");
-    }
-}
-
 static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
 
-    char data[1024];
+    char data[MAX_TEXT];
     ssize_t data_length = 0;
     EB_Error_Code error;
 
@@ -105,7 +53,7 @@ static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode
                 NULL,
                 NULL,
                 NULL,
-                1023,
+                MAX_TEXT - 1,
                 data,
                 &data_length
             );
@@ -116,7 +64,7 @@ static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode
                 NULL,
                 NULL,
                 NULL,
-                1023,
+                MAX_TEXT - 1,
                 data,
                 &data_length
             );
@@ -126,6 +74,45 @@ static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode
     }
 
     return error == EB_SUCCESS ? eucjp_to_utf8(data) : NULL;
+}
+
+static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
+    if (subbook->entry_cap == 0) {
+        subbook->entry_cap = 16384;
+        subbook->entries = malloc(subbook->entry_cap * sizeof(Entry));
+    }
+
+    EB_Hit hits[MAX_HITS];
+    int hit_count = 0;
+
+    do {
+        if (eb_hit_list(eb_book, MAX_HITS, hits, &hit_count) != EB_SUCCESS) {
+            continue;
+        }
+
+        for (int i = 0; i < hit_count; ++i) {
+            EB_Hit* hit = hits + i;
+
+            if (subbook->entry_count == subbook->entry_cap) {
+                subbook->entry_cap *= 2;
+                subbook->entries = realloc(subbook->entries, subbook->entry_cap * sizeof(Entry));
+            }
+
+            Entry* entry = subbook->entries + subbook->entry_count++;
+            printf("%d\n", subbook->entry_count);
+
+            entry->heading_page = hit->heading.page;
+            entry->heading_offset = hit->heading.offset;
+            entry->heading = read_book_data(eb_book, &hit->heading, READ_MODE_HEADING);
+
+            entry->text_page = hit->text.page;
+            entry->text_offset = hit->text.offset;
+            entry->text = read_book_data(eb_book, &hit->text, READ_MODE_TEXT);
+        }
+    }
+    while (hit_count > 0);
+
+    printf("done\n");
 }
 
 static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
@@ -139,6 +126,18 @@ static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
             subbook->copyright = read_book_data(eb_book, &position, READ_MODE_TEXT);
         }
+    }
+
+    if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
+        export_subbook_entries(eb_book, subbook);
+    }
+
+    if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
+        export_subbook_entries(eb_book, subbook);
+    }
+
+    if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
+        export_subbook_entries(eb_book, subbook);
     }
 }
 

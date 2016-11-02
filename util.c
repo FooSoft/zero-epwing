@@ -17,24 +17,3 @@
  */
 
 #include "util.h"
-
-void array_init(Array* arr, size_t size) {
-    arr->ptr = calloc(size, sizeof(void*));
-    arr->used = 0;
-    arr->size = size;
-}
-
-void array_push(Array* arr, void* data) {
-    if (arr->used == arr->size) {
-        arr->size *= 2;
-        arr->ptr = realloc(arr->ptr, arr->size * sizeof(void*));
-    }
-
-    arr->ptr[arr->used++] = data;
-}
-
-void array_free(Array* arr) {
-    free(arr->ptr);
-    arr->ptr = NULL;
-    arr->used = arr->size = 0;
-}
