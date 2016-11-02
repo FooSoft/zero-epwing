@@ -64,4 +64,16 @@ typedef struct {
     char error[MAX_ERROR];
 } Book;
 
+/*
+   Book helpers
+*/
+
+typedef enum {
+    READ_MODE_TEXT,
+    READ_MODE_HEADING,
+} ReadMode;
+
+char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode);
+void  free_book(Book* book);
+
 #endif

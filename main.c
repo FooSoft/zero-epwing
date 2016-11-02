@@ -16,10 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define _BSD_SOURCE
-
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 
 #include "convert.h"
@@ -27,54 +24,8 @@
 
 #include "eb/eb/eb.h"
 #include "eb/eb/error.h"
-#include "eb/eb/text.h"
 
-#define MAX_HITS 128
-#define MAX_TEXT 1024
-
-typedef enum {
-    READ_MODE_TEXT,
-    READ_MODE_HEADING,
-} ReadMode;
-
-static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) {
-    if (eb_seek_text(book, position) != EB_SUCCESS) {
-        return NULL;
-    }
-
-    char data[MAX_TEXT];
-    ssize_t data_length = 0;
-    EB_Error_Code error;
-
-    switch (mode) {
-        case READ_MODE_TEXT:
-            error = eb_read_text(
-                book,
-                NULL,
-                NULL,
-                NULL,
-                MAX_TEXT - 1,
-                data,
-                &data_length
-            );
-            break;
-        case READ_MODE_HEADING:
-            error = eb_read_heading(
-                book,
-                NULL,
-                NULL,
-                NULL,
-                MAX_TEXT - 1,
-                data,
-                &data_length
-            );
-            break;
-        default:
-            return NULL;
-    }
-
-    return error == EB_SUCCESS ? eucjp_to_utf8(data) : NULL;
-}
+#define MAX_HITS 256
 
 static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
     if (subbook->entry_cap == 0) {
@@ -209,22 +160,6 @@ static void export_book(const char path[], Book* book) {
         eb_finalize_library();
     }
     while(0);
-}
-
-static void free_book(Book* book) {
-    for (int i = 0; i < book->subbook_count; ++i) {
-        Subbook* subbook = book->subbooks + i;
-        free(subbook->title);
-        free(subbook->copyright);
-
-        for (int j = 0; j < subbook->entry_count; ++j) {
-            Entry* entry = subbook->entries + j;
-            free(entry->heading);
-            free(entry->text);
-        }
-
-        free(subbook->entries);
-    }
 }
 
 int main(int argc, char *argv[]) {
