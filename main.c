@@ -133,16 +133,17 @@ static void export_subbook(EB_Book* book, Subbook* subbook_data) {
 
 static void export_book(const char path[], Book* book_data) {
     do {
-        if (eb_initialize_library() != EB_SUCCESS) {
-            strcpy(book_data->error, "failed to initialize library");
+        EB_Error_Code error;
+        if ((error = eb_initialize_library()) != EB_SUCCESS) {
+            strcpy(book_data->error, eb_error_message(error));
             break;
         }
 
         EB_Book book;
         eb_initialize_book(&book);
 
-        if (eb_bind(&book, path) != EB_SUCCESS) {
-            strcpy(book_data->error, "failed to bind book to path");
+        if ((error = eb_bind(&book, path)) != EB_SUCCESS) {
+            strcpy(book_data->error, eb_error_message(error));
             eb_finalize_book(&book);
             eb_finalize_library();
             break;
@@ -182,23 +183,22 @@ static void export_book(const char path[], Book* book_data) {
         }
 
         EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
-        if (eb_subbook_list(&book, sub_codes, &book_data->subbook_count) != EB_SUCCESS) {
-            eb_finalize_book(&book);
-            eb_finalize_library();
-            break;
-        }
-
-        if (book_data->subbook_count > 0) {
-            book_data->subbooks = calloc(book_data->subbook_count, sizeof(Subbook));
-            for (int i = 0; i < book_data->subbook_count; ++i) {
-                Subbook* subbook_data = book_data->subbooks + i;
-                if (eb_set_subbook(&book, sub_codes[i]) == EB_SUCCESS) {
-                    export_subbook(&book, subbook_data);
-                }
-                else {
-                    strcpy(subbook_data->error, "failed to set subbook");
+        if ((error = eb_subbook_list(&book, sub_codes, &book_data->subbook_count)) == EB_SUCCESS) {
+            if (book_data->subbook_count > 0) {
+                book_data->subbooks = calloc(book_data->subbook_count, sizeof(Subbook));
+                for (int i = 0; i < book_data->subbook_count; ++i) {
+                    Subbook* subbook_data = book_data->subbooks + i;
+                    if ((error = eb_set_subbook(&book, sub_codes[i])) == EB_SUCCESS) {
+                        export_subbook(&book, subbook_data);
+                    }
+                    else {
+                        strcpy(subbook_data->error, eb_error_message(error));
+                    }
                 }
             }
+        }
+        else {
+            strcpy(book_data->error, eb_error_message(error));
         }
 
         eb_finalize_book(&book);
