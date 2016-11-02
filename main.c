@@ -89,7 +89,7 @@ static void dump_book(EB_Book* book) {
     }
 }
 
-static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) {
+static char* read_book(EB_Book* book, const EB_Position* position, ReadMode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -115,89 +115,104 @@ static char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode
     return eucjp_to_utf8(data);
 }
 
-static void export_subbook(EB_Book* book, Subbook* subbook_data) {
+static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
     char title[EB_MAX_TITLE_LENGTH + 1];
-    if (eb_subbook_title(book, title) == EB_SUCCESS) {
-        subbook_data->title = eucjp_to_utf8(title);
+    if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
+        subbook->title = eucjp_to_utf8(title);
     }
 
-    if (eb_have_copyright(book)) {
+    if (eb_have_copyright(eb_book)) {
         EB_Position position;
-        if (eb_copyright(book, &position) == EB_SUCCESS) {
-            subbook_data->copyright = read_book_data(book, &position, READ_MODE_TEXT);
+        if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
+            subbook->copyright = read_book(eb_book, &position, READ_MODE_TEXT);
         }
     }
-
-    puts(subbook_data->copyright);
 }
 
-static void export_book(const char path[], Book* book_data) {
+static void export_book(const char path[], Book* book) {
     do {
         EB_Error_Code error;
         if ((error = eb_initialize_library()) != EB_SUCCESS) {
-            strcpy(book_data->error, eb_error_message(error));
+            strcpy(book->error, eb_error_message(error));
             break;
         }
 
-        EB_Book book;
-        eb_initialize_book(&book);
-        if ((error = eb_bind(&book, path)) != EB_SUCCESS) {
-            strcpy(book_data->error, eb_error_message(error));
-            eb_finalize_book(&book);
+        EB_Book eb_book;
+        eb_initialize_book(&eb_book);
+
+        if ((error = eb_bind(&eb_book, path)) != EB_SUCCESS) {
+            strcpy(book->error, eb_error_message(error));
+            eb_finalize_book(&eb_book);
             eb_finalize_library();
             break;
         }
 
         EB_Character_Code character_code;
-        if (eb_character_code(&book, &character_code) == EB_SUCCESS) {
+        if (eb_character_code(&eb_book, &character_code) == EB_SUCCESS) {
             switch (character_code) {
                 case EB_CHARCODE_ISO8859_1:
-                    strcpy(book_data->character_code, "iso8859-1");
+                    strcpy(book->character_code, "iso8859-1");
                     break;
                 case EB_CHARCODE_JISX0208:
-                    strcpy(book_data->character_code, "jisx0208");
+                    strcpy(book->character_code, "jisx0208");
                     break;
                 case EB_CHARCODE_JISX0208_GB2312:
-                    strcpy(book_data->character_code, "jisx0208/gb2312");
+                    strcpy(book->character_code, "jisx0208/gb2312");
                     break;
             }
         }
 
         EB_Disc_Code disc_code;
-        if (eb_disc_type(&book, &disc_code) == EB_SUCCESS) {
+        if (eb_disc_type(&eb_book, &disc_code) == EB_SUCCESS) {
             switch (disc_code) {
                 case EB_DISC_EB:
-                    strcpy(book_data->disc_code, "eb");
+                    strcpy(book->disc_code, "eb");
                     break;
                 case EB_DISC_EPWING:
-                    strcpy(book_data->disc_code, "epwing");
+                    strcpy(book->disc_code, "epwing");
                     break;
             }
         }
 
         EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
-        if ((error = eb_subbook_list(&book, sub_codes, &book_data->subbook_count)) == EB_SUCCESS) {
-            if (book_data->subbook_count > 0) {
-                book_data->subbooks = calloc(book_data->subbook_count, sizeof(Subbook));
-                for (int i = 0; i < book_data->subbook_count; ++i) {
-                    Subbook* subbook_data = book_data->subbooks + i;
-                    if ((error = eb_set_subbook(&book, sub_codes[i])) == EB_SUCCESS) {
-                        export_subbook(&book, subbook_data);
+        if ((error = eb_subbook_list(&eb_book, sub_codes, &book->subbook_count)) == EB_SUCCESS) {
+            if (book->subbook_count > 0) {
+                book->subbooks = calloc(book->subbook_count, sizeof(Subbook));
+                for (int i = 0; i < book->subbook_count; ++i) {
+                    Subbook* subbook = book->subbooks + i;
+                    if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
+                        export_subbook(&eb_book, subbook);
                     }
                     else {
-                        strcpy(subbook_data->error, eb_error_message(error));
+                        strcpy(subbook->error, eb_error_message(error));
                     }
                 }
             }
         }
         else {
-            strcpy(book_data->error, eb_error_message(error));
+            strcpy(book->error, eb_error_message(error));
         }
 
-        eb_finalize_book(&book);
+        eb_finalize_book(&eb_book);
         eb_finalize_library();
     }
     while(0);
+}
+
+static void free_book(Book* book) {
+    for (int i = 0; i < book->subbook_count; ++i) {
+        Subbook* subbook = book->subbooks + i;
+        free(subbook->title);
+        free(subbook->copyright);
+
+        for (int j = 0; j < subbook->entry_count; ++j) {
+            Entry* entry = subbook->entries + j;
+            free(entry->heading);
+            free(entry->text);
+        }
+
+        free(subbook->entries);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -206,8 +221,9 @@ int main(int argc, char *argv[]) {
         return 2;
     }
 
-    Book book_data = {};
-    export_book(argv[1], &book_data);
+    Book book = {};
+    export_book(argv[1], &book);
+    free_book(&book);
 
     return 1;
 }

@@ -26,6 +26,8 @@
    Dictionary structures
 */
 
+#define MAX_ERROR 256
+
 typedef struct {
     char* heading;
     char* text;
@@ -51,17 +53,17 @@ typedef struct {
     Entry* entries;
     int    entry_count;
 
-    char error[256];
+    char error[MAX_ERROR];
 } Subbook;
 
 typedef struct {
-    char character_code[256];
-    char disc_code[256];
+    char character_code[32];
+    char disc_code[32];
 
     Subbook* subbooks;
     int      subbook_count;
 
-    char error[256];
+    char error[MAX_ERROR];
 } Book;
 
 /*
