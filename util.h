@@ -20,6 +20,7 @@
 #define UTIL_H
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "eb/eb/eb.h"
 
 /*
@@ -74,6 +75,9 @@ typedef enum {
 } ReadMode;
 
 char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode);
-void  free_book(Book* book);
+
+void free_book(Book* book);
+void dump_book(Book* book, FILE* fp);
+
 
 #endif

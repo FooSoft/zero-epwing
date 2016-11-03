@@ -17,6 +17,7 @@
  */
 
 #include <stdbool.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "util.h"
@@ -25,6 +26,8 @@
 #include "eb/eb/eb.h"
 #include "eb/eb/error.h"
 #include "eb/eb/text.h"
+
+#include "jansson/include/jansson.h"
 
 #define MAX_TEXT 1024
 
@@ -81,4 +84,67 @@ void free_book(Book* book) {
 
         free(subbook->entries);
     }
+}
+
+static void encode_entry(Entry* entry, json_t* entry_json) {
+    json_object_set_new(entry_json, "heading", json_string(entry->heading));
+    json_object_set_new(entry_json, "text", json_string(entry->text));
+}
+
+static void encode_subbook(Subbook* subbook, json_t* subbook_json) {
+    if (subbook->title != NULL) {
+        json_object_set_new(subbook_json, "title", json_string(subbook->title));
+    }
+
+    if (subbook->copyright != NULL) {
+        json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright));
+    }
+
+    if (strlen(subbook->error) > 0) {
+        json_object_set_new(subbook_json, "error", json_string(subbook->error));
+    }
+
+    json_t* entry_json_array = json_array();
+    for (int i = 0; i < subbook->entry_count; ++i) {
+        json_t* entry_json = json_object();
+        encode_entry(subbook->entries + i, entry_json);
+        json_array_append(entry_json_array, entry_json);
+        json_decref(entry_json);
+    }
+
+    json_object_set(subbook_json, "entries", entry_json_array);
+    json_decref(entry_json_array);
+}
+
+static void encode_book(Book* book, json_t* book_json) {
+    json_object_set_new(book_json, "characterCode", json_string(book->character_code));
+    json_object_set_new(book_json, "discCode", json_string(book->disc_code));
+
+    if (strlen(book->error) > 0) {
+        json_object_set_new(book_json, "error", json_string(book->error));
+    }
+
+    json_t* subbook_json_array = json_array();
+    for (int i = 0; i < book->subbook_count; ++i) {
+        json_t* subbook_json = json_object();
+        encode_subbook(book->subbooks + i, subbook_json);
+        json_array_append(subbook_json_array, subbook_json);
+        json_decref(subbook_json);
+    }
+
+    json_object_set(book_json, "subbooks", subbook_json_array);
+    json_decref(subbook_json_array);
+}
+
+void dump_book(Book* book, FILE* fp) {
+    json_t* book_json = json_object();
+    encode_book(book, book_json);
+
+    char* output = json_dumps(book_json, JSON_COMPACT);
+    if (output != NULL) {
+        fputs(output, fp);
+    }
+    free(output);
+
+    json_decref(book_json);
 }

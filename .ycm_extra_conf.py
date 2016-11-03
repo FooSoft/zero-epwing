@@ -5,6 +5,7 @@ def FlagsForFile(filename, **kwargs):
         '-Werror',
         '-std=gnu11',
         '-I/mnt/projects/zero-epwing/eb',
+        '-I/mnt/projects/zero-epwing/jansson/include',
         '-x',
         'c',
     ]

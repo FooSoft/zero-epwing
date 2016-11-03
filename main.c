@@ -119,6 +119,9 @@ static void export_book(const char path[], Book* book) {
                 case EB_CHARCODE_JISX0208_GB2312:
                     strcpy(book->character_code, "jisx0208/gb2312");
                     break;
+                default:
+                    strcpy(book->character_code, "invalid");
+                    break;
             }
         }
 
@@ -130,6 +133,9 @@ static void export_book(const char path[], Book* book) {
                     break;
                 case EB_DISC_EPWING:
                     strcpy(book->disc_code, "epwing");
+                    break;
+                default:
+                    strcpy(book->disc_code, "invalid");
                     break;
             }
         }
@@ -161,13 +167,14 @@ static void export_book(const char path[], Book* book) {
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "usage: %s path\n", argv[0]);
+        fprintf(stderr, "usage: %s dictionary_path\n", argv[0]);
         return 2;
     }
-
-    Book book = {};
-    export_book(argv[1], &book);
-    free_book(&book);
-
-    return 1;
+    else {
+        Book book = {};
+        export_book(argv[1], &book);
+        dump_book(&book, stdout);
+        free_book(&book);
+        return 1;
+    }
 }
