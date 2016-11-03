@@ -50,13 +50,7 @@ static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
             }
 
             Entry* entry = subbook->entries + subbook->entry_count++;
-
-            entry->heading_page = hit->heading.page;
-            entry->heading_offset = hit->heading.offset;
             entry->heading = read_book_data(eb_book, &hit->heading, READ_MODE_HEADING);
-
-            entry->text_page = hit->text.page;
-            entry->text_offset = hit->text.offset;
             entry->text = read_book_data(eb_book, &hit->text, READ_MODE_TEXT);
         }
     }

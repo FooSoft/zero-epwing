@@ -36,12 +36,7 @@ typedef struct {
 
 typedef struct {
     char* heading;
-    int   heading_page;
-    int   heading_offset;
-
     char* text;
-    int   text_page;
-    int   text_offset;
 } Entry;
 
 typedef struct {
