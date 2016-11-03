@@ -136,11 +136,11 @@ static void encode_book(Book* book, json_t* book_json) {
     json_decref(subbook_json_array);
 }
 
-void dump_book(Book* book, FILE* fp) {
+void dump_book(Book* book, bool pretty_print, FILE* fp) {
     json_t* book_json = json_object();
     encode_book(book, book_json);
 
-    char* output = json_dumps(book_json, JSON_COMPACT);
+    char* output = json_dumps(book_json, pretty_print ? JSON_INDENT(4) : JSON_COMPACT);
     if (output != NULL) {
         fputs(output, fp);
     }

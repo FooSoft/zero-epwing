@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <getopt.h>
+#include <stdbool.h>
 
 #include "convert.h"
 #include "util.h"
@@ -160,15 +162,29 @@ static void export_book(const char path[], Book* book) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s dictionary_path\n", argv[0]);
-        return 2;
+    bool pretty_print = false;
+
+    char opt;
+    while ((opt = getopt(argc, argv, "p")) != -1) {
+        switch (opt) {
+            case 'p':
+                pretty_print = true;
+                break;
+            default:
+                exit(EXIT_FAILURE);
+                break;
+        }
     }
-    else {
-        Book book = {};
-        export_book(argv[1], &book);
-        dump_book(&book, stdout);
-        free_book(&book);
-        return 1;
+
+    if (optind >= argc) {
+        fprintf(stderr, "Usage: %s [-p] dictionary_path\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
+
+    Book book = {};
+    export_book(argv[optind], &book);
+    dump_book(&book, pretty_print, stdout);
+    free_book(&book);
+
+    return 0;
 }
