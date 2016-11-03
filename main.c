@@ -50,7 +50,6 @@ static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
             }
 
             Entry* entry = subbook->entries + subbook->entry_count++;
-            printf("%d\n", subbook->entry_count);
 
             entry->heading_page = hit->heading.page;
             entry->heading_offset = hit->heading.offset;
@@ -62,8 +61,6 @@ static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
         }
     }
     while (hit_count > 0);
-
-    printf("done\n");
 }
 
 static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
