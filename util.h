@@ -48,8 +48,6 @@ typedef struct {
     Entry* entries;
     int    entry_count;
     int    entry_cap;
-
-    char error[MAX_ERROR];
 } Subbook;
 
 typedef struct {
@@ -58,8 +56,6 @@ typedef struct {
 
     Subbook* subbooks;
     int      subbook_count;
-
-    char error[MAX_ERROR];
 } Book;
 
 /*

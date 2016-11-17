@@ -100,10 +100,6 @@ static void encode_subbook(Subbook* subbook, json_t* subbook_json) {
         json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright));
     }
 
-    if (strlen(subbook->error) > 0) {
-        json_object_set_new(subbook_json, "error", json_string(subbook->error));
-    }
-
     json_t* entry_json_array = json_array();
     for (int i = 0; i < subbook->entry_count; ++i) {
         json_t* entry_json = json_object();
@@ -119,10 +115,6 @@ static void encode_subbook(Subbook* subbook, json_t* subbook_json) {
 static void encode_book(Book* book, json_t* book_json) {
     json_object_set_new(book_json, "characterCode", json_string(book->character_code));
     json_object_set_new(book_json, "discCode", json_string(book->disc_code));
-
-    if (strlen(book->error) > 0) {
-        json_object_set_new(book_json, "error", json_string(book->error));
-    }
 
     json_t* subbook_json_array = json_array();
     for (int i = 0; i < book->subbook_count; ++i) {

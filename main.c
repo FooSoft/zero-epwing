@@ -89,7 +89,7 @@ static void export_book(const char path[], Book* book) {
     do {
         EB_Error_Code error;
         if ((error = eb_initialize_library()) != EB_SUCCESS) {
-            strcpy(book->error, eb_error_message(error));
+            fprintf(stderr, "Failed to initialize library: %s\n", eb_error_message(error));
             break;
         }
 
@@ -97,7 +97,7 @@ static void export_book(const char path[], Book* book) {
         eb_initialize_book(&eb_book);
 
         if ((error = eb_bind(&eb_book, path)) != EB_SUCCESS) {
-            strcpy(book->error, eb_error_message(error));
+            fprintf(stderr, "Failed to bind book: %s\n", eb_error_message(error));
             eb_finalize_book(&eb_book);
             eb_finalize_library();
             break;
@@ -146,13 +146,13 @@ static void export_book(const char path[], Book* book) {
                         export_subbook(&eb_book, subbook);
                     }
                     else {
-                        strcpy(subbook->error, eb_error_message(error));
+                        fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));
                     }
                 }
             }
         }
         else {
-            strcpy(book->error, eb_error_message(error));
+            fprintf(stderr, "Failed to get subbook list: %s\n", eb_error_message(error));
         }
 
         eb_finalize_book(&eb_book);
