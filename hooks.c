@@ -20,6 +20,10 @@
 #include "eb/eb/eb.h"
 #include "eb/eb/text.h"
 
+/*
+ *  Boilerplate
+ */
+
 #define HOOK_TAG_HELPER(FUNC_NAME, TAG_NAME) \
     static EB_Error_Code hook_##FUNC_NAME##_begin(\
         EB_Book*           book,\
@@ -45,6 +49,12 @@
     HOOK_TAG_HELPER(NAME##_begin, #NAME); \
     HOOK_TAG_HELPER(NAME##_end, "/" #NAME);
 
+#define MAX_REPLACEMENT 64
+
+/*
+ *  Paired tags
+ */
+
 HOOK_TAG_PAIR(candidate);         /* EB_HOOK_BEGIN_CANDIDATE */
 HOOK_TAG_PAIR(color_bmp);         /* EB_HOOK_BEGIN_COLOR_BMP */
 HOOK_TAG_PAIR(color_jpeg);        /* EB_HOOK_BEGIN_COLOR_JPEG */
@@ -63,12 +73,90 @@ HOOK_TAG_PAIR(subscript);         /* EB_HOOK_BEGIN_SUBSCRIPT */
 HOOK_TAG_PAIR(superscript);       /* EB_HOOK_BEGIN_SUPERSCRIPT */
 HOOK_TAG_PAIR(wave);              /* EB_HOOK_BEGIN_WAVE */
 
+/*
+ *  Single tags
+ */
+
 HOOK_TAG_SINGLE(gb2312);          /* EB_HOOK_GB2312 */
 HOOK_TAG_SINGLE(iso8859_1);       /* EB_HOOK_ISO8859_1 */
-HOOK_TAG_SINGLE(narrow_font);     /* EB_HOOK_NARROW_FONT */
 HOOK_TAG_SINGLE(narrow_jisx0208); /* EB_HOOK_NARROW_JISX0208 */
 HOOK_TAG_SINGLE(newline);         /* EB_HOOK_NEWLINE */
 HOOK_TAG_SINGLE(set_indent);      /* EB_HOOK_SET_INDENT */
-HOOK_TAG_SINGLE(wide_font);       /* EB_HOOK_WIDE_FONT */
 HOOK_TAG_SINGLE(wide_jisx0208);   /* EB_HOOK_WIDE_JISX0208 */
 HOOK_TAG_SINGLE(null);            /* EB_HOOK_NULL */
+
+/*
+ *  Gaiji nonsense
+ */
+
+static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
+    EB_Book*           book,
+    EB_Appendix*       appendix,
+    void*              container,
+    EB_Hook_Code       code,
+    int                argc,
+    const unsigned int argv[]
+) {
+    (void)book;
+    (void)appendix;
+    (void)container;
+    (void)code;
+    (void)argc;
+    (void)argv;
+
+    /* char replacement[MAX_REPLACEMENT] = "?"; */
+
+    /* /1* Check if there is a UTF-8 replacement for this gaiji code *1/ */
+    /* if(get_gaiji_replacment_elem(subbook_directory, 'n', (unsigned short)argv[0]) != NULL) */
+    /* { */
+    /*     sprintf(replacement, "{#n%04X}", argv[0]); */
+    /* } */
+    /* else if(gaiji_option == GAIJI_OPTION_HTML_IMG) /1* Add HTML IMG tag *1/ */
+    /* { */
+    /*     get_character_html_img(replacement, book, SAVE_BMP, SAVE_NARROW, argv[0]); */
+    /* } */
+    /* else */
+    /* { */
+    /*     sprintf(replacement, "?"); */
+    /* } */
+
+    /* eb_write_text_string(book, replacement); */
+
+    return 0;
+}
+
+static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
+    EB_Book*           book,
+    EB_Appendix*       appendix,
+    void*              container,
+    EB_Hook_Code       code,
+    int                argc,
+    const unsigned int argv[]
+) {
+    (void)book;
+    (void)appendix;
+    (void)container;
+    (void)code;
+    (void)argc;
+    (void)argv;
+
+    /* char replacement[MAXLEN_PATH] = ""; */
+
+    /* /1* Check if there is a UTF-8 replacement for this gaiji code *1/ */
+    /* if(get_gaiji_replacment_elem(subbook_directory, 'w', (unsigned short)argv[0]) != NULL) */
+    /* { */
+    /*     sprintf(replacement, "{#w%04X}", argv[0]); */
+    /* } */
+    /* else if(gaiji_option == GAIJI_OPTION_HTML_IMG) /1* Add HTML IMG tag *1/ */
+    /* { */
+    /*     get_character_html_img(replacement, book, SAVE_BMP, SAVE_WIDE, argv[0]); */
+    /* } */
+    /* else */
+    /* { */
+    /*     sprintf(replacement, "?"); */
+    /* } */
+
+    /* eb_write_text_string(book, replacement); */
+
+    return 0;
+}
