@@ -16,10 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <getopt.h>
-#include <stdbool.h>
 
 #include "convert.h"
 #include "util.h"
@@ -29,9 +27,17 @@
 #include "eb/text.h"
 #include "eb/eb/error.h"
 
+/*
+ * Constants
+ */
+
 #define MAX_HITS 256
 
-static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
+/*
+ * Local functions
+ */
+
+static void export_subbook_entries(EB_Book* eb_book, EB_Hookset* eb_hookset, Subbook* subbook) {
     if (subbook->entry_cap == 0) {
         subbook->entry_cap = 16384;
         subbook->entries = malloc(subbook->entry_cap * sizeof(Entry));
@@ -168,6 +174,10 @@ static void export_book(const char path[], Book* book) {
     }
     while(0);
 }
+
+/*
+ * Entry point
+ */
 
 int main(int argc, char *argv[]) {
     bool pretty_print = false;

@@ -16,15 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HOOKS_H
-#define HOOKS_H
+#include <stdio.h>
 
 #include "eb/eb/eb.h"
+#include "eb/eb/text.h"
+
+#include "gaiji.h"
 
 /*
  * Exported functions
  */
 
-void hooks_install(EB_Hookset* hookset);
+void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width) {
+    sprintf(text, "!!!");
+    (void)code;
+    (void)text;
+    (void)context;
+    (void)width;
+}
 
-#endif /* HOOKS_H */
+void gaiji_fixup_stub(char output[], int size, const char input[], const Gaiji_context* context) {
+    (void)output;
+    (void)size;
+    (void)input;
+    (void)context;
+}

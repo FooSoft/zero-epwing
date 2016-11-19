@@ -16,12 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
+
 #include "hooks.h"
+#include "gaiji.h"
+
 #include "eb/eb/eb.h"
 #include "eb/eb/text.h"
 
 /*
- * Boilerplate
+ * Macros
  */
 
 #define HOOK_FUNC_NAME(NAME) hook_##NAME
@@ -44,10 +48,8 @@
         return 0;\
     }
 
-#define MAX_REPLACEMENT 64
-
 /*
- * Basic tag printers
+ * Tag printers
  */
 
 HOOK_TAGGER(begin_candidate);      /* EB_HOOK_BEGIN_CANDIDATE */
@@ -92,7 +94,7 @@ HOOK_TAGGER(wide_jisx0208);        /* EB_HOOK_WIDE_JISX0208 */
 HOOK_TAGGER(null);                 /* EB_HOOK_NULL */
 
 /*
- * Gaiji processing
+ * Local functions
  */
 
 static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
@@ -103,30 +105,14 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     int                argc,
     const unsigned int argv[]
 ) {
-    (void)book;
+    assert(argc > 0);
+
     (void)appendix;
-    (void)container;
     (void)code;
-    (void)argc;
-    (void)argv;
 
-    /* char replacement[MAX_REPLACEMENT] = "?"; */
-
-    /* /1* Check if there is a UTF-8 replacement for this gaiji code *1/ */
-    /* if(get_gaiji_replacment_elem(subbook_directory, 'n', (unsigned short)argv[0]) != NULL) */
-    /* { */
-    /*     sprintf(replacement, "{#n%04X}", argv[0]); */
-    /* } */
-    /* else if(gaiji_option == GAIJI_OPTION_HTML_IMG) /1* Add HTML IMG tag *1/ */
-    /* { */
-    /*     get_character_html_img(replacement, book, SAVE_BMP, SAVE_NARROW, argv[0]); */
-    /* } */
-    /* else */
-    /* { */
-    /*     sprintf(replacement, "?"); */
-    /* } */
-
-    /* eb_write_text_string(book, replacement); */
+    char stub[MAX_STUB_BYTES];
+    gaiji_build_stub(stub, argv[0], container, GAIJI_WIDTH_NARROW);
+    eb_write_text_string(book, stub);
 
     return 0;
 }
@@ -139,36 +125,20 @@ static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
     int                argc,
     const unsigned int argv[]
 ) {
-    (void)book;
+    assert(argc > 0);
+
     (void)appendix;
-    (void)container;
     (void)code;
-    (void)argc;
-    (void)argv;
 
-    /* char replacement[MAXLEN_PATH] = ""; */
-
-    /* /1* Check if there is a UTF-8 replacement for this gaiji code *1/ */
-    /* if(get_gaiji_replacment_elem(subbook_directory, 'w', (unsigned short)argv[0]) != NULL) */
-    /* { */
-    /*     sprintf(replacement, "{#w%04X}", argv[0]); */
-    /* } */
-    /* else if(gaiji_option == GAIJI_OPTION_HTML_IMG) /1* Add HTML IMG tag *1/ */
-    /* { */
-    /*     get_character_html_img(replacement, book, SAVE_BMP, SAVE_WIDE, argv[0]); */
-    /* } */
-    /* else */
-    /* { */
-    /*     sprintf(replacement, "?"); */
-    /* } */
-
-    /* eb_write_text_string(book, replacement); */
+    char stub[MAX_STUB_BYTES];
+    gaiji_build_stub(stub, argv[0], container, GAIJI_WIDTH_WIDE);
+    eb_write_text_string(book, stub);
 
     return 0;
 }
 
 /*
- * Hook table
+ * Local data
  */
 
 static const EB_Hook s_hooks[] = {
@@ -207,11 +177,11 @@ static const EB_Hook s_hooks[] = {
     { EB_HOOK_END_WAVE,             HOOK_FUNC_NAME(end_wave)             },
     { EB_HOOK_GB2312,               HOOK_FUNC_NAME(gb2312)               },
     { EB_HOOK_ISO8859_1,            HOOK_FUNC_NAME(iso8859_1)            },
-    /* { EB_HOOK_NARROW_FONT,          HOOK_FUNC_NAME(narrow_font)          }, */
+    { EB_HOOK_NARROW_FONT,          HOOK_FUNC_NAME(narrow_font)          },
     /* { EB_HOOK_NARROW_JISX0208,      HOOK_FUNC_NAME(narrow_jisx0208)      }, */
     { EB_HOOK_NEWLINE,              HOOK_FUNC_NAME(newline)              },
     { EB_HOOK_SET_INDENT,           HOOK_FUNC_NAME(set_indent)           },
-    /* { EB_HOOK_WIDE_FONT,            HOOK_FUNC_NAME(wide_font)            }, */
+    { EB_HOOK_WIDE_FONT,            HOOK_FUNC_NAME(wide_font)            },
     /* { EB_HOOK_WIDE_JISX0208,        HOOK_FUNC_NAME(wide_jisx0208)        }, */
     { EB_HOOK_NULL,                 HOOK_FUNC_NAME(null)                 },
 };

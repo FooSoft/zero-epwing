@@ -26,10 +26,14 @@
 #include "eb/eb/eb.h"
 
 /*
-   Dictionary structures
-*/
+ * Constants
+ */
 
 #define MAX_ERROR 256
+
+/*
+ * Types
+ */
 
 typedef struct {
     char* heading;
@@ -58,19 +62,17 @@ typedef struct {
     int      subbook_count;
 } Book;
 
-/*
-   Book helpers
-*/
-
 typedef enum {
     READ_MODE_TEXT,
     READ_MODE_HEADING,
 } ReadMode;
 
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode);
+/*
+ * Functions
+ */
 
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode);
 void free_book(Book* book);
 void dump_book(Book* book, bool pretty_print, FILE* fp);
 
-
-#endif
+#endif /* UTIL_H */

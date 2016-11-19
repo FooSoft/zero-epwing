@@ -29,7 +29,61 @@
 
 #include "jansson/include/jansson.h"
 
+/*
+ * Constants
+ */
+
 #define MAX_TEXT 1024
+
+/*
+ * Local functions
+ */
+
+static void encode_entry(Entry* entry, json_t* entry_json) {
+    json_object_set_new(entry_json, "heading", json_string(entry->heading));
+    json_object_set_new(entry_json, "text", json_string(entry->text));
+}
+
+static void encode_subbook(Subbook* subbook, json_t* subbook_json) {
+    if (subbook->title != NULL) {
+        json_object_set_new(subbook_json, "title", json_string(subbook->title));
+    }
+
+    if (subbook->copyright != NULL) {
+        json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright));
+    }
+
+    json_t* entry_json_array = json_array();
+    for (int i = 0; i < subbook->entry_count; ++i) {
+        json_t* entry_json = json_object();
+        encode_entry(subbook->entries + i, entry_json);
+        json_array_append(entry_json_array, entry_json);
+        json_decref(entry_json);
+    }
+
+    json_object_set(subbook_json, "entries", entry_json_array);
+    json_decref(entry_json_array);
+}
+
+static void encode_book(Book* book, json_t* book_json) {
+    json_object_set_new(book_json, "characterCode", json_string(book->character_code));
+    json_object_set_new(book_json, "discCode", json_string(book->disc_code));
+
+    json_t* subbook_json_array = json_array();
+    for (int i = 0; i < book->subbook_count; ++i) {
+        json_t* subbook_json = json_object();
+        encode_subbook(book->subbooks + i, subbook_json);
+        json_array_append(subbook_json_array, subbook_json);
+        json_decref(subbook_json);
+    }
+
+    json_object_set(book_json, "subbooks", subbook_json_array);
+    json_decref(subbook_json_array);
+}
+
+/*
+ * Exported functions
+ */
 
 char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
@@ -84,48 +138,6 @@ void free_book(Book* book) {
 
         free(subbook->entries);
     }
-}
-
-static void encode_entry(Entry* entry, json_t* entry_json) {
-    json_object_set_new(entry_json, "heading", json_string(entry->heading));
-    json_object_set_new(entry_json, "text", json_string(entry->text));
-}
-
-static void encode_subbook(Subbook* subbook, json_t* subbook_json) {
-    if (subbook->title != NULL) {
-        json_object_set_new(subbook_json, "title", json_string(subbook->title));
-    }
-
-    if (subbook->copyright != NULL) {
-        json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright));
-    }
-
-    json_t* entry_json_array = json_array();
-    for (int i = 0; i < subbook->entry_count; ++i) {
-        json_t* entry_json = json_object();
-        encode_entry(subbook->entries + i, entry_json);
-        json_array_append(entry_json_array, entry_json);
-        json_decref(entry_json);
-    }
-
-    json_object_set(subbook_json, "entries", entry_json_array);
-    json_decref(entry_json_array);
-}
-
-static void encode_book(Book* book, json_t* book_json) {
-    json_object_set_new(book_json, "characterCode", json_string(book->character_code));
-    json_object_set_new(book_json, "discCode", json_string(book->disc_code));
-
-    json_t* subbook_json_array = json_array();
-    for (int i = 0; i < book->subbook_count; ++i) {
-        json_t* subbook_json = json_object();
-        encode_subbook(book->subbooks + i, subbook_json);
-        json_array_append(subbook_json_array, subbook_json);
-        json_decref(subbook_json);
-    }
-
-    json_object_set(book_json, "subbooks", subbook_json_array);
-    json_decref(subbook_json_array);
 }
 
 void dump_book(Book* book, bool pretty_print, FILE* fp) {

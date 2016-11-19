@@ -22,7 +22,11 @@
 #include <errno.h>
 #include <stdlib.h>
 
-/* Reference: https://stackoverflow.com/questions/2162390/iconv-encoding-conversion-problem */
+/*
+ * Local functions
+ */
+
+/* https://stackoverflow.com/questions/2162390/iconv-encoding-conversion-problem */
 
 static char * convert (const char *from_charset, const char *to_charset, const char *input) {
     size_t inleft, outleft, converted = 0;
@@ -108,6 +112,10 @@ static char * convert (const char *from_charset, const char *to_charset, const c
 
     return output;
 }
+
+/*
+ * Exported functions
+ */
 
 char* eucjp_to_utf8(const char src[]) {
     return convert("EUC-JP", "UTF-8", src);

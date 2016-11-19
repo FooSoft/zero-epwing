@@ -16,15 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HOOKS_H
-#define HOOKS_H
-
-#include "eb/eb/eb.h"
+#ifndef GAIJI_H
+#define GAIJI_H
 
 /*
- * Exported functions
+ * Constants
  */
 
-void hooks_install(EB_Hookset* hookset);
+#define MAX_STUB_BYTES 9
 
-#endif /* HOOKS_H */
+/*
+ * Types
+ */
+
+typedef struct {
+    int  code;
+    int  bytes;
+    char stub[MAX_STUB_BYTES];
+} Gaiji_entry;
+
+typedef struct {
+    Gaiji_entry* table;
+    int          count;
+} Gaiji_context;
+
+typedef enum {
+    GAIJI_WIDTH_WIDE,
+    GAIJI_WIDTH_NARROW,
+} Gaiji_width;
+
+/*
+ * Functions
+ */
+
+void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width);
+void gaiji_fixup_stub(char output[], int size, const char input[], const Gaiji_context* context);
+
+#endif /* GAIJI_H */

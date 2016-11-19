@@ -19,6 +19,10 @@
 #ifndef CONVERT_H
 #define CONVERT_H
 
+/*
+ * Functions
+ */
+
 char* eucjp_to_utf8(const char src[]);
 
-#endif
+#endif /* CONVERT_H */
