@@ -23,8 +23,10 @@
 
 #include "convert.h"
 #include "util.h"
+#include "hooks.h"
 
 #include "eb/eb/eb.h"
+#include "eb/text.h"
 #include "eb/eb/error.h"
 
 #define MAX_HITS 256
@@ -96,9 +98,14 @@ static void export_book(const char path[], Book* book) {
         EB_Book eb_book;
         eb_initialize_book(&eb_book);
 
+        EB_Hookset eb_hookset;
+        eb_initialize_hookset(&eb_hookset);
+        hooks_install(&eb_hookset);
+
         if ((error = eb_bind(&eb_book, path)) != EB_SUCCESS) {
             fprintf(stderr, "Failed to bind book: %s\n", eb_error_message(error));
             eb_finalize_book(&eb_book);
+            eb_finalize_hookset(&eb_hookset);
             eb_finalize_library();
             break;
         }
@@ -156,6 +163,7 @@ static void export_book(const char path[], Book* book) {
         }
 
         eb_finalize_book(&eb_book);
+        eb_finalize_hookset(&eb_hookset);
         eb_finalize_library();
     }
     while(0);

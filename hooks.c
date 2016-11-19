@@ -221,5 +221,8 @@ static const EB_Hook s_hooks[] = {
  */
 
 void hooks_install(EB_Hookset* hookset) {
-    (void)hookset;
+    const int count = sizeof(s_hooks) / sizeof(s_hooks[0]);
+    for (int i = 0; i < count; ++i) {
+        eb_set_hook(hookset, s_hooks + i);
+    }
 }

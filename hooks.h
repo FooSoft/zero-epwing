@@ -19,5 +19,8 @@
 #ifndef HOOKS_H
 #define HOOKS_H
 
+#include "eb/eb/eb.h"
+
+void hooks_install(EB_Hookset* hookset);
 
 #endif
