@@ -207,12 +207,12 @@ static const EB_Hook s_hooks[] = {
     { EB_HOOK_END_WAVE,             HOOK_FUNC_NAME(end_wave)             },
     { EB_HOOK_GB2312,               HOOK_FUNC_NAME(gb2312)               },
     { EB_HOOK_ISO8859_1,            HOOK_FUNC_NAME(iso8859_1)            },
-    { EB_HOOK_NARROW_FONT,          HOOK_FUNC_NAME(narrow_font)          },
-    { EB_HOOK_NARROW_JISX0208,      HOOK_FUNC_NAME(narrow_jisx0208)      },
+    /* { EB_HOOK_NARROW_FONT,          HOOK_FUNC_NAME(narrow_font)          }, */
+    /* { EB_HOOK_NARROW_JISX0208,      HOOK_FUNC_NAME(narrow_jisx0208)      }, */
     { EB_HOOK_NEWLINE,              HOOK_FUNC_NAME(newline)              },
     { EB_HOOK_SET_INDENT,           HOOK_FUNC_NAME(set_indent)           },
-    { EB_HOOK_WIDE_FONT,            HOOK_FUNC_NAME(wide_font)            },
-    { EB_HOOK_WIDE_JISX0208,        HOOK_FUNC_NAME(wide_jisx0208)        },
+    /* { EB_HOOK_WIDE_FONT,            HOOK_FUNC_NAME(wide_font)            }, */
+    /* { EB_HOOK_WIDE_JISX0208,        HOOK_FUNC_NAME(wide_jisx0208)        }, */
     { EB_HOOK_NULL,                 HOOK_FUNC_NAME(null)                 },
 };
 

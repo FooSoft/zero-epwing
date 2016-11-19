@@ -31,7 +31,7 @@
 
 #define MAX_TEXT 1024
 
-char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) {
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -45,7 +45,7 @@ char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) 
             error = eb_read_text(
                 book,
                 NULL,
-                NULL,
+                hookset,
                 NULL,
                 MAX_TEXT - 1,
                 data,
@@ -56,7 +56,7 @@ char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode) 
             error = eb_read_heading(
                 book,
                 NULL,
-                NULL,
+                hookset,
                 NULL,
                 MAX_TEXT - 1,
                 data,

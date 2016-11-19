@@ -67,7 +67,7 @@ typedef enum {
     READ_MODE_HEADING,
 } ReadMode;
 
-char* read_book_data(EB_Book* book, const EB_Position* position, ReadMode mode);
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode);
 
 void free_book(Book* book);
 void dump_book(Book* book, bool pretty_print, FILE* fp);

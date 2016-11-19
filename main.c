@@ -54,14 +54,14 @@ static void export_subbook_entries(EB_Book* eb_book, Subbook* subbook) {
             }
 
             Entry* entry = subbook->entries + subbook->entry_count++;
-            entry->heading = read_book_data(eb_book, &hit->heading, READ_MODE_HEADING);
-            entry->text = read_book_data(eb_book, &hit->text, READ_MODE_TEXT);
+            entry->heading = read_book_data(eb_book, eb_hookset, &hit->heading, READ_MODE_HEADING);
+            entry->text = read_book_data(eb_book, eb_hookset, &hit->text, READ_MODE_TEXT);
         }
     }
     while (hit_count > 0);
 }
 
-static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
+static void export_subbook(EB_Book* eb_book, EB_Hookset* eb_hookset, Subbook* subbook) {
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
@@ -70,20 +70,20 @@ static void export_subbook(EB_Book* eb_book, Subbook* subbook) {
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = read_book_data(eb_book, &position, READ_MODE_TEXT);
+            subbook->copyright = read_book_data(eb_book, eb_hookset, &position, READ_MODE_TEXT);
         }
     }
 
     if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(eb_book, subbook);
+        export_subbook_entries(eb_book, eb_hookset, subbook);
     }
 
     if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(eb_book, subbook);
+        export_subbook_entries(eb_book, eb_hookset, subbook);
     }
 
     if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(eb_book, subbook);
+        export_subbook_entries(eb_book, eb_hookset, subbook);
     }
 }
 
@@ -150,7 +150,7 @@ static void export_book(const char path[], Book* book) {
                 for (int i = 0; i < book->subbook_count; ++i) {
                     Subbook* subbook = book->subbooks + i;
                     if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                        export_subbook(&eb_book, subbook);
+                        export_subbook(&eb_book, &eb_hookset, subbook);
                     }
                     else {
                         fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));
@@ -172,7 +172,7 @@ static void export_book(const char path[], Book* book) {
 int main(int argc, char *argv[]) {
     bool pretty_print = false;
 
-    char opt;
+    char opt = 0;
     while ((opt = getopt(argc, argv, "p")) != -1) {
         switch (opt) {
             case 'p':
