@@ -79,7 +79,7 @@ static void encode_book(Book* book, json_t* book_json) {
  * Exported functions
  */
 
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_context* context, const EB_Position* position, ReadMode mode) {
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context, const EB_Position* position, Read_Mode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }

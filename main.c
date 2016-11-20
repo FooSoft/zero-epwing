@@ -32,7 +32,7 @@
  * Local functions
  */
 
-static void export_subbook_entries(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_context* context) {
+static void export_subbook_entries(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Context* context) {
     if (subbook->entry_cap == 0) {
         subbook->entry_cap = 16384;
         subbook->entries = malloc(subbook->entry_cap * sizeof(Entry));
@@ -75,7 +75,7 @@ static void export_subbook_entries(Subbook* subbook, EB_Book* eb_book, EB_Hookse
 }
 
 static void export_subbook(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
-    Gaiji_context context = {};
+    Gaiji_Context context = {};
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);

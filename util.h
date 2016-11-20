@@ -40,7 +40,7 @@
 typedef struct {
     char* heading;
     char* text;
-} TextBlock;
+} Text_Block;
 
 typedef struct {
     char* heading;
@@ -67,13 +67,13 @@ typedef struct {
 typedef enum {
     READ_MODE_TEXT,
     READ_MODE_HEADING,
-} ReadMode;
+} Read_Mode;
 
 /*
  * Functions
  */
 
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_context* context, const EB_Position* position, ReadMode mode);
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context, const EB_Position* position, Read_Mode mode);
 void free_book(Book* book);
 void dump_book(Book* book, bool pretty_print, FILE* fp);
 

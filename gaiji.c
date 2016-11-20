@@ -40,7 +40,7 @@
 
 #include "gaiji_table_daijisen.h"
 
-static const Gaiji_context gaiji_contexts[] = {
+static const Gaiji_Context gaiji_contexts[] = {
     GAIJI_CONTEXT("大辞泉", daijisen),
 };
 
@@ -84,9 +84,9 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
  * Exported functions
  */
 
-const Gaiji_context* gaiji_select_context(const char name[]) {
+const Gaiji_Context* gaiji_select_context(const char name[]) {
     for (unsigned i = 0; i < ARRSIZE(gaiji_contexts); ++i) {
-        const Gaiji_context* context = gaiji_contexts + i;
+        const Gaiji_Context* context = gaiji_contexts + i;
         if (strcmp(context->name, name) == 0) {
             return context;
         }
@@ -95,13 +95,13 @@ const Gaiji_context* gaiji_select_context(const char name[]) {
     return NULL;
 }
 
-void gaiji_build_stub(char output[], int size, int code, const Gaiji_context* context, Gaiji_width width) {
+void gaiji_build_stub(char output[], int size, int code, const Gaiji_Context* context, Gaiji_Width width) {
     do {
         if (context == NULL) {
             break;
         }
 
-        const Gaiji_entry* entries = NULL;
+        const Gaiji_Entry* entries = NULL;
         int count = 0;
 
         switch (width) {
@@ -118,7 +118,7 @@ void gaiji_build_stub(char output[], int size, int code, const Gaiji_context* co
         assert(entries != NULL);
 
         for (int i = 0; i < count; ++i) {
-            const Gaiji_entry* entry = entries + i;
+            const Gaiji_Entry* entry = entries + i;
             if (entry->code == code) {
                 encode_sequence(output, size, entry->utf8);
                 return;
