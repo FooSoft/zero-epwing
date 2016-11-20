@@ -26,12 +26,6 @@
 #include "eb/eb/eb.h"
 
 /*
- * Constants
- */
-
-#define MAX_ERROR 256
-
-/*
  * Types
  */
 

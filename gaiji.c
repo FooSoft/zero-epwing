@@ -24,8 +24,19 @@
 #include "gaiji.h"
 
 /*
+ * Local data
+ */
+
+#include "gaiji_table_daijisen.h"
+
+/*
  * Exported functions
  */
+
+void gaiji_init_context(Gaiji_context* context, const char title[]) {
+    (void)context;
+    (void)title;
+}
 
 void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width) {
     sprintf(text, "!!!");
