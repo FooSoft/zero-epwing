@@ -17,6 +17,7 @@
  */
 
 #include <string.h>
+#include <assert.h>
 
 #include "util.h"
 #include "gaiji.h"
@@ -25,7 +26,7 @@
  * Macros
  */
 
-#define GAIJI_TABLE(name, ents) {\
+#define GAIJI_CONTEXT(name, ents) {\
     name,\
     gaiji_table_##ents##_wide,\
     ARRSIZE(gaiji_table_##ents##_wide),\
@@ -39,35 +40,59 @@
 
 #include "gaiji_table_daijisen.h"
 
-static const Gaiji_table gaiji_tables[] = {
-    GAIJI_TABLE("大辞泉", daijisen),
+static const Gaiji_context gaiji_contexts[] = {
+    GAIJI_CONTEXT("大辞泉", daijisen),
 };
 
 /*
  * Exported functions
  */
 
-const Gaiji_table * gaiji_select_table(const char name[]) {
-    for (unsigned i = 0; i < ARRSIZE(gaiji_tables); ++i) {
-        const Gaiji_table* table = gaiji_tables + i;
-        if (strcmp(table->name, name) == 0) {
-            return table;
+const Gaiji_context * gaiji_select_table(const char name[]) {
+    for (unsigned i = 0; i < ARRSIZE(gaiji_contexts); ++i) {
+        const Gaiji_context* context = gaiji_contexts + i;
+        if (strcmp(context->name, name) == 0) {
+            return context;
         }
     }
 
     return NULL;
 }
 
-void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_table* table, Gaiji_width width) {
-    if (table == NULL) {
-        strcpy(text, "<?>");
-        return;
-    }
+void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width) {
+    do {
+        if (context == NULL) {
+            break;
+        }
 
-    (void)code;
-    (void)text;
-    (void)table;
-    (void)width;
+        const Gaiji_entry* entries = NULL;
+        int count = 0;
+
+        switch (width) {
+            case GAIJI_WIDTH_WIDE:
+                entries = context->table_wide;
+                count = context->count_wide;
+                break;
+            case GAIJI_WIDTH_NARROW:
+                entries = context->table_narrow;
+                count = context->count_narrow;
+                break;
+        }
+
+        assert(entries != NULL);
+
+        for (int i = 0; i < count; ++i) {
+            const Gaiji_entry* entry = entries + i;
+            if (entry->code == code) {
+                sprintf(text, "{{%.4x}}", code);
+                return;
+            }
+        }
+
+    }
+    while (0);
+
+    strcpy(text, "<?>");
 }
 
 void gaiji_fixup_stub(char output[], int size, const char input[]) {
