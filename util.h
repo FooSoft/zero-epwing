@@ -26,6 +26,12 @@
 #include "eb/eb/eb.h"
 
 /*
+ * Macros
+ */
+
+#define ARRSIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
+/*
  * Types
  */
 

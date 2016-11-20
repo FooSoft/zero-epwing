@@ -16,12 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
+#include <string.h>
 
 #include "eb/eb/eb.h"
 #include "eb/eb/text.h"
 
+#include "util.h"
 #include "gaiji.h"
+
+/*
+ * Macros
+ */
+
+#define GAIJI_TABLE(name, ents) {\
+    name,\
+    gaiji_table_##ents##_wide,\
+    ARRSIZE(gaiji_table_##ents##_wide),\
+    gaiji_table_##ents##_narrow,\
+    ARRSIZE(gaiji_table_##ents##_narrow)\
+}
 
 /*
  * Local data
@@ -29,26 +42,39 @@
 
 #include "gaiji_table_daijisen.h"
 
+static const Gaiji_table gaiji_tables[] = {
+    GAIJI_TABLE("大辞泉", daijisen),
+};
+
 /*
  * Exported functions
  */
 
-void gaiji_init_context(Gaiji_context* context, const char title[]) {
-    (void)context;
-    (void)title;
+const Gaiji_table * gaiji_select_table(const char title[]) {
+    for (unsigned i = 0; i < ARRSIZE(gaiji_tables); ++i) {
+        const Gaiji_table* table = gaiji_tables + i;
+        if (strcmp(table->title, title) == 0) {
+            return table;
+        }
+    }
+
+    return NULL;
 }
 
-void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width) {
-    sprintf(text, "!!!");
+void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_table* table, Gaiji_width width) {
+    if (table == NULL) {
+        strcpy(text, "<?>");
+        return;
+    }
+
     (void)code;
     (void)text;
-    (void)context;
+    (void)table;
     (void)width;
 }
 
-void gaiji_fixup_stub(char output[], int size, const char input[], const Gaiji_context* context) {
+void gaiji_fixup_stub(char output[], int size, const char input[]) {
     (void)output;
     (void)size;
     (void)input;
-    (void)context;
 }

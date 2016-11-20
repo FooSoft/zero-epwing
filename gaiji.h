@@ -24,6 +24,7 @@
  */
 
 #define MAX_STUB_BYTES 10
+#define MAX_TABLE_NAME 256
 
 /*
  * Types
@@ -35,11 +36,12 @@ typedef struct {
 } Gaiji_entry;
 
 typedef struct {
-    Gaiji_entry* table_wide;
-    int          count_wide;
-    Gaiji_entry* table_narrow;
-    int          count_narrow;
-} Gaiji_context;
+    char               title[MAX_TABLE_NAME];
+    const Gaiji_entry* table_wide;
+    int                count_wide;
+    const Gaiji_entry* table_narrow;
+    int                count_narrow;
+} Gaiji_table;
 
 typedef enum {
     GAIJI_WIDTH_WIDE,
@@ -50,8 +52,8 @@ typedef enum {
  * Functions
  */
 
-void gaiji_init_context(Gaiji_context* context, const char title[]);
-void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width);
-void gaiji_fixup_stub(char output[], int size, const char input[], const Gaiji_context* context);
+const Gaiji_table * gaiji_select_table(const char title[]);
+void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_table* table, Gaiji_width width);
+void gaiji_fixup_stub(char output[], int size, const char input[]);
 
 #endif /* GAIJI_H */
