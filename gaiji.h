@@ -23,7 +23,8 @@
  * Constants
  */
 
-#define MAX_STUB_BYTES 10
+#define MAX_UTF8_BYTES  9
+#define MAX_STUB_BYTES 32
 #define MAX_TABLE_NAME 256
 
 /*
@@ -32,7 +33,7 @@
 
 typedef struct {
     int  code;
-    char data[MAX_STUB_BYTES];
+    char utf8[MAX_UTF8_BYTES];
 } Gaiji_entry;
 
 typedef struct {
@@ -53,7 +54,7 @@ typedef enum {
  */
 
 const Gaiji_context * gaiji_select_context(const char name[]);
-void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width);
+void gaiji_build_stub(char output[], int size, int code, const Gaiji_context* context, Gaiji_width width);
 void gaiji_fixup_stub(char output[], int size, const char input[]);
 
 #endif /* GAIJI_H */

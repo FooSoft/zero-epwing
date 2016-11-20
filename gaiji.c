@@ -45,6 +45,42 @@ static const Gaiji_context gaiji_contexts[] = {
 };
 
 /*
+ * Local functions
+ */
+
+static void encode_sequence(char output[], int size, const char utf8[]) {
+    const char hex[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7',
+        '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+    };
+
+    strncpy(output, "{{", size);
+    int offset = strlen(output);
+
+    for (int i = 0; i < MAX_UTF8_BYTES; ++i) {
+        const char c = utf8[i];
+        if (c == 0) {
+            break;
+        }
+
+        if (offset >= size - 1) {
+            break;
+        }
+
+        output[offset++] = hex[c >> 0x08];
+
+        if (offset >= size - 1) {
+            break;
+        }
+
+        output[offset++] = hex[c & 0x0f];
+    }
+
+    output[offset] = 0;
+    strncat(output, "}}", size);
+}
+
+/*
  * Exported functions
  */
 
@@ -59,7 +95,7 @@ const Gaiji_context * gaiji_select_table(const char name[]) {
     return NULL;
 }
 
-void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* context, Gaiji_width width) {
+void gaiji_build_stub(char output[], int size, int code, const Gaiji_context* context, Gaiji_width width) {
     do {
         if (context == NULL) {
             break;
@@ -84,7 +120,7 @@ void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* 
         for (int i = 0; i < count; ++i) {
             const Gaiji_entry* entry = entries + i;
             if (entry->code == code) {
-                sprintf(text, "{{%.4x}}", code);
+                encode_sequence(output, size, entry->utf8);
                 return;
             }
         }
@@ -92,7 +128,8 @@ void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_context* 
     }
     while (0);
 
-    strcpy(text, "<?>");
+    strncpy(output, "<?>", size);
+    output[size - 1] = 0;
 }
 
 void gaiji_fixup_stub(char output[], int size, const char input[]) {

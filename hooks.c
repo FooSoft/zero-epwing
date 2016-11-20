@@ -20,6 +20,7 @@
 
 #include "hooks.h"
 #include "gaiji.h"
+#include "util.h"
 
 #include "eb/eb/eb.h"
 #include "eb/eb/text.h"
@@ -111,7 +112,7 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     (void)code;
 
     char stub[MAX_STUB_BYTES];
-    gaiji_build_stub(stub, argv[0], container, GAIJI_WIDTH_NARROW);
+    gaiji_build_stub(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_NARROW);
     eb_write_text_string(book, stub);
 
     return 0;
@@ -131,7 +132,7 @@ static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
     (void)code;
 
     char stub[MAX_STUB_BYTES];
-    gaiji_build_stub(stub, argv[0], container, GAIJI_WIDTH_WIDE);
+    gaiji_build_stub(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_WIDE);
     eb_write_text_string(book, stub);
 
     return 0;
@@ -191,8 +192,7 @@ static const EB_Hook s_hooks[] = {
  */
 
 void hooks_install(EB_Hookset* hookset) {
-    const int count = sizeof(s_hooks) / sizeof(s_hooks[0]);
-    for (int i = 0; i < count; ++i) {
+    for (unsigned i = 0; i < ARRSIZE(s_hooks); ++i) {
         eb_set_hook(hookset, s_hooks + i);
     }
 }
