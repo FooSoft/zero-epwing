@@ -84,7 +84,7 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
  * Exported functions
  */
 
-const Gaiji_context * gaiji_select_table(const char name[]) {
+const Gaiji_context* gaiji_select_context(const char name[]) {
     for (unsigned i = 0; i < ARRSIZE(gaiji_contexts); ++i) {
         const Gaiji_context* context = gaiji_contexts + i;
         if (strcmp(context->name, name) == 0) {

@@ -25,6 +25,8 @@
 
 #include "eb/eb/eb.h"
 
+#include "gaiji.h"
+
 /*
  * Macros
  */
@@ -71,7 +73,7 @@ typedef enum {
  * Functions
  */
 
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode);
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_context* context, const EB_Position* position, ReadMode mode);
 void free_book(Book* book);
 void dump_book(Book* book, bool pretty_print, FILE* fp);
 

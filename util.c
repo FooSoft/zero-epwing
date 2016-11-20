@@ -30,12 +30,6 @@
 #include "jansson/include/jansson.h"
 
 /*
- * Constants
- */
-
-#define MAX_TEXT 1024
-
-/*
  * Local functions
  */
 
@@ -85,12 +79,12 @@ static void encode_book(Book* book, json_t* book_json) {
  * Exported functions
  */
 
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, ReadMode mode) {
+char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_context* context, const EB_Position* position, ReadMode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
 
-    char data[MAX_TEXT];
+    char data[1024];
     ssize_t data_length = 0;
     EB_Error_Code error;
 
@@ -100,8 +94,8 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* posi
                 book,
                 NULL,
                 hookset,
-                NULL,
-                MAX_TEXT - 1,
+                context,
+                ARRSIZE(data) - 1,
                 data,
                 &data_length
             );
@@ -111,8 +105,8 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, const EB_Position* posi
                 book,
                 NULL,
                 hookset,
-                NULL,
-                MAX_TEXT - 1,
+                context,
+                ARRSIZE(data) - 1,
                 data,
                 &data_length
             );

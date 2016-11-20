@@ -50,7 +50,7 @@
     }
 
 /*
- * Tag printers
+ * Local functions
  */
 
 HOOK_TAGGER(begin_candidate);      /* EB_HOOK_BEGIN_CANDIDATE */
@@ -94,10 +94,6 @@ HOOK_TAGGER(set_indent);           /* EB_HOOK_SET_INDENT */
 HOOK_TAGGER(wide_jisx0208);        /* EB_HOOK_WIDE_JISX0208 */
 HOOK_TAGGER(null);                 /* EB_HOOK_NULL */
 
-/*
- * Local functions
- */
-
 static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     EB_Book*           book,
     EB_Appendix*       appendix,
@@ -106,11 +102,10 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     int                argc,
     const unsigned int argv[]
 ) {
-    assert(argc > 0);
-
     (void)appendix;
     (void)code;
 
+    assert(argc > 0);
     char stub[MAX_STUB_BYTES];
     gaiji_build_stub(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_NARROW);
     eb_write_text_string(book, stub);
@@ -126,11 +121,10 @@ static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
     int                argc,
     const unsigned int argv[]
 ) {
-    assert(argc > 0);
-
     (void)appendix;
     (void)code;
 
+    assert(argc > 0);
     char stub[MAX_STUB_BYTES];
     gaiji_build_stub(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_WIDE);
     eb_write_text_string(book, stub);

@@ -53,7 +53,7 @@ typedef enum {
  * Functions
  */
 
-const Gaiji_context * gaiji_select_context(const char name[]);
+const Gaiji_context* gaiji_select_context(const char name[]);
 void gaiji_build_stub(char output[], int size, int code, const Gaiji_context* context, Gaiji_width width);
 void gaiji_fixup_stub(char output[], int size, const char input[]);
 

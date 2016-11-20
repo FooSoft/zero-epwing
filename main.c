@@ -22,32 +22,27 @@
 #include "convert.h"
 #include "util.h"
 #include "hooks.h"
+#include "gaiji.h"
 
 #include "eb/eb/eb.h"
 #include "eb/text.h"
 #include "eb/eb/error.h"
 
 /*
- * Constants
- */
-
-#define MAX_HITS 256
-
-/*
  * Local functions
  */
 
-static void export_subbook_entries(EB_Book* eb_book, EB_Hookset* eb_hookset, Subbook* subbook) {
+static void export_subbook_entries(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_context* context) {
     if (subbook->entry_cap == 0) {
         subbook->entry_cap = 16384;
         subbook->entries = malloc(subbook->entry_cap * sizeof(Entry));
     }
 
-    EB_Hit hits[MAX_HITS];
+    EB_Hit hits[256];
     int hit_count = 0;
 
     do {
-        if (eb_hit_list(eb_book, MAX_HITS, hits, &hit_count) != EB_SUCCESS) {
+        if (eb_hit_list(eb_book, ARRSIZE(hits), hits, &hit_count) != EB_SUCCESS) {
             continue;
         }
 
@@ -60,40 +55,54 @@ static void export_subbook_entries(EB_Book* eb_book, EB_Hookset* eb_hookset, Sub
             }
 
             Entry* entry = subbook->entries + subbook->entry_count++;
-            entry->heading = read_book_data(eb_book, eb_hookset, &hit->heading, READ_MODE_HEADING);
-            entry->text = read_book_data(eb_book, eb_hookset, &hit->text, READ_MODE_TEXT);
+            entry->heading = read_book_data(
+                eb_book,
+                eb_hookset,
+                context,
+                &hit->heading,
+                READ_MODE_HEADING
+            );
+            entry->text = read_book_data(
+                eb_book,
+                eb_hookset,
+                context,
+                &hit->text,
+                READ_MODE_TEXT
+            );
         }
     }
     while (hit_count > 0);
 }
 
-static void export_subbook(EB_Book* eb_book, EB_Hookset* eb_hookset, Subbook* subbook) {
+static void export_subbook(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
+    Gaiji_context context = {};
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
+        context = *gaiji_select_context(subbook->title);
     }
 
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = read_book_data(eb_book, eb_hookset, &position, READ_MODE_TEXT);
+            subbook->copyright = read_book_data(eb_book, eb_hookset, &context, &position, READ_MODE_TEXT);
         }
     }
 
     if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(eb_book, eb_hookset, subbook);
+        export_subbook_entries(subbook, eb_book, eb_hookset, &context);
     }
 
     if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(eb_book, eb_hookset, subbook);
+        export_subbook_entries(subbook, eb_book, eb_hookset, &context);
     }
 
     if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(eb_book, eb_hookset, subbook);
+        export_subbook_entries(subbook, eb_book, eb_hookset, &context);
     }
 }
 
-static void export_book(const char path[], Book* book) {
+static void export_book(Book* book, const char path[]) {
     do {
         EB_Error_Code error;
         if ((error = eb_initialize_library()) != EB_SUCCESS) {
@@ -156,7 +165,7 @@ static void export_book(const char path[], Book* book) {
                 for (int i = 0; i < book->subbook_count; ++i) {
                     Subbook* subbook = book->subbooks + i;
                     if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                        export_subbook(&eb_book, &eb_hookset, subbook);
+                        export_subbook(subbook, &eb_book, &eb_hookset);
                     }
                     else {
                         fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));
@@ -200,7 +209,7 @@ int main(int argc, char *argv[]) {
     }
 
     Book book = {};
-    export_book(argv[optind], &book);
+    export_book(&book, argv[optind]);
     dump_book(&book, pretty_print, stdout);
     free_book(&book);
 
