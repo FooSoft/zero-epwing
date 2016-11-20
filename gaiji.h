@@ -36,7 +36,7 @@ typedef struct {
 } Gaiji_entry;
 
 typedef struct {
-    char               title[MAX_TABLE_NAME];
+    char               name[MAX_TABLE_NAME];
     const Gaiji_entry* table_wide;
     int                count_wide;
     const Gaiji_entry* table_narrow;
@@ -52,7 +52,7 @@ typedef enum {
  * Functions
  */
 
-const Gaiji_table * gaiji_select_table(const char title[]);
+const Gaiji_table * gaiji_select_table(const char name[]);
 void gaiji_build_stub(char text[MAX_STUB_BYTES], int code, const Gaiji_table* table, Gaiji_width width);
 void gaiji_fixup_stub(char output[], int size, const char input[]);
 

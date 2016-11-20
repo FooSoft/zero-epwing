@@ -18,9 +18,6 @@
 
 #include <string.h>
 
-#include "eb/eb/eb.h"
-#include "eb/eb/text.h"
-
 #include "util.h"
 #include "gaiji.h"
 
@@ -50,10 +47,10 @@ static const Gaiji_table gaiji_tables[] = {
  * Exported functions
  */
 
-const Gaiji_table * gaiji_select_table(const char title[]) {
+const Gaiji_table * gaiji_select_table(const char name[]) {
     for (unsigned i = 0; i < ARRSIZE(gaiji_tables); ++i) {
         const Gaiji_table* table = gaiji_tables + i;
-        if (strcmp(table->title, title) == 0) {
+        if (strcmp(table->name, name) == 0) {
             return table;
         }
     }
