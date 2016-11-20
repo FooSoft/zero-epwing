@@ -58,8 +58,8 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
     int offset = strlen(output);
 
     for (int i = 0; i < MAX_UTF8_BYTES; ++i) {
-        const char c = utf8[i];
-        if (c == 0) {
+        const unsigned char byte = utf8[i];
+        if (byte == 0) {
             break;
         }
 
@@ -67,13 +67,13 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
             break;
         }
 
-        output[offset++] = hex[c >> 0x08];
+        output[offset++] = hex[byte >> 0x04];
 
         if (offset >= size - 1) {
             break;
         }
 
-        output[offset++] = hex[c & 0x0f];
+        output[offset++] = hex[byte & 0x0f];
     }
 
     output[offset] = 0;
