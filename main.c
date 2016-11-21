@@ -35,7 +35,7 @@
  * Local functions
  */
 
-static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Context* context) {
+static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Table* table) {
     if (subbook->entry_capacity == 0) {
         subbook->entry_capacity = 16384;
         subbook->entries = malloc(subbook->entry_capacity * sizeof(Book_Entry));
@@ -58,38 +58,38 @@ static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_H
             }
 
             Book_Entry* entry = subbook->entries + subbook->entry_count++;
-            entry->heading = book_read(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, context);
-            entry->text = book_read(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, context);
+            entry->heading = book_read(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, table);
+            entry->text = book_read(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, table);
         }
     }
     while (hit_count > 0);
 }
 
 static void export_subbook(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
-    Gaiji_Context context = {};
+    Gaiji_Table table = {};
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
-        context = *gaiji_context_select(subbook->title);
+        table = *gaiji_table_select(subbook->title);
     }
 
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = book_read(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, &context);
+            subbook->copyright = book_read(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, &table);
         }
     }
 
     if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(subbook, eb_book, eb_hookset, &context);
+        export_subbook_entries(subbook, eb_book, eb_hookset, &table);
     }
 
     if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(subbook, eb_book, eb_hookset, &context);
+        export_subbook_entries(subbook, eb_book, eb_hookset, &table);
     }
 
     if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(subbook, eb_book, eb_hookset, &context);
+        export_subbook_entries(subbook, eb_book, eb_hookset, &table);
     }
 }
 

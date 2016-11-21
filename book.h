@@ -61,7 +61,7 @@ typedef enum {
  * Functions
  */
 
-char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Context* context);
+char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Table* table);
 void book_free(Book* book);
 void book_dump(Book* book, bool pretty_print, FILE* fp);
 

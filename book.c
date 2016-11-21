@@ -78,7 +78,7 @@ static void encode_book(Book* book, json_t* book_json) {
  * Exported functions
  */
 
-char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Context* context) {
+char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Table* table) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -93,7 +93,7 @@ char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position,
                 book,
                 NULL,
                 hookset,
-                context,
+                table,
                 ARRSIZE(data) - 1,
                 data,
                 &data_length
@@ -104,7 +104,7 @@ char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position,
                 book,
                 NULL,
                 hookset,
-                context,
+                table,
                 ARRSIZE(data) - 1,
                 data,
                 &data_length
