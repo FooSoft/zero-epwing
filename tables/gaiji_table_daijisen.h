@@ -20,7 +20,7 @@
 #ifndef GAIJI_TABLE_DAIJISEN_H
 #define GAIJI_TABLE_DAIJISEN_H
 
-#include "gaiji.h"
+#include "../gaiji.h"
 
 static const Gaiji_Entry gaiji_table_daijisen_narrow[] = {
     { 0xA121, { 0xC2, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } }, /*   */

@@ -39,10 +39,25 @@
  * Local data
  */
 
-#include "gaiji_table_daijisen.h"
+#include "tables/gaiji_table_chujiten.h"
+#include "tables/gaiji_table_daijirin.h"
+#include "tables/gaiji_table_daijisen.h"
+#include "tables/gaiji_table_genius.h"
+#include "tables/gaiji_table_kojien.h"
+#include "tables/gaiji_table_meikyojj.h"
+#include "tables/gaiji_table_meikyou.h"
+#include "tables/gaiji_table_snmkg99.h"
+#include "tables/gaiji_table_wadai5.h"
 
 static const Gaiji_Context gaiji_contexts[] = {
+    GAIJI_CONTEXT("ジーニアス英和辞典", genius),
+    GAIJI_CONTEXT("スーパー大辞林", daijirin),
     GAIJI_CONTEXT("大辞泉", daijisen),
+    GAIJI_CONTEXT("広辞苑第六版", kojien),
+    GAIJI_CONTEXT("新和英大辞典", wadai5),
+    GAIJI_CONTEXT("新明解国語辞典　", snmkg99),
+    GAIJI_CONTEXT("新英和・和英中辞典", chujiten),
+    GAIJI_CONTEXT("明鏡国語辞典", meikyojj),
 };
 
 /*
