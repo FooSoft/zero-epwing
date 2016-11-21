@@ -17,6 +17,7 @@
  */
 
 #include <string.h>
+#include <stdbool.h>
 #include <assert.h>
 
 #include "util.h"
@@ -48,13 +49,33 @@ static const Gaiji_Context gaiji_contexts[] = {
  * Local functions
  */
 
-static void encode_sequence(char output[], int size, const char utf8[]) {
+static int ascii_to_nibble(char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    }
+
+    if (c >= 'a' && c <= 'f') {
+        return 0x0a + (c - 'a');
+    }
+
+    return 0;
+}
+
+static char nibble_to_ascii(int n) {
     const char hex[] = {
         '0', '1', '2', '3', '4', '5', '6', '7',
         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 
-    strncpy(output, "{{", size);
+    return n <= 0x0f ? hex[n] : 0;
+}
+
+static bool is_ascii_nibble(char c) {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+}
+
+static void encode_sequence(char output[], int size, const char utf8[]) {
+    strncpy(output, "{#", size);
     int offset = strlen(output);
 
     for (int i = 0; i < MAX_UTF8_BYTES; ++i) {
@@ -67,17 +88,57 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
             break;
         }
 
-        output[offset++] = hex[byte >> 0x04];
+        output[offset++] = nibble_to_ascii(byte >> 0x04);
 
         if (offset >= size - 1) {
             break;
         }
 
-        output[offset++] = hex[byte & 0x0f];
+        output[offset++] = nibble_to_ascii(byte & 0x0f);
     }
 
     output[offset] = 0;
-    strncat(output, "}}", size);
+    strncat(output, "}", size);
+}
+
+static void decode_sequence(char output[], int size, const char input[]) {
+    const char* ptr_in = input;
+    char* ptr_out = output;
+    bool decode = false;
+
+    while (*ptr_in != 0 && ptr_out - output < size - 1) {
+        if (strncmp(ptr_in, "{#", 2) == 0) {
+            decode = true;
+            ptr_in += 2;
+        }
+
+        if (decode) {
+            const char high_ascii = *ptr_in++;
+            if (high_ascii == 0) {
+                break;
+            }
+
+            const char low_ascii = *ptr_in++;
+            if (low_ascii == 0) {
+                break;
+            }
+
+            if (high_ascii == '}') {
+                decode = false;
+                --ptr_in;
+            }
+            else {
+                assert(is_ascii_nibble(high_ascii));
+                assert(is_ascii_nibble(low_ascii));
+                *ptr_out++ = ascii_to_nibble(high_ascii) << 0x04 | ascii_to_nibble(low_ascii);
+            }
+        }
+        else {
+            *ptr_out++ = *ptr_in++;
+        }
+    }
+
+    *ptr_out = 0;
 }
 
 /*

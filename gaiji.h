@@ -23,7 +23,7 @@
  * Constants
  */
 
-#define MAX_UTF8_BYTES  9
+#define MAX_UTF8_BYTES 9
 #define MAX_STUB_BYTES 32
 #define MAX_CONTEXT_NAME 256
 
