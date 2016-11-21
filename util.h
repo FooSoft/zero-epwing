@@ -16,65 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UTIL_H
-#define UTIL_H
-
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-
-#include "eb/eb/eb.h"
-
-#include "gaiji.h"
-
 /*
  * Macros
  */
 
+#ifndef UTIL_H
+#define UTIL_H
+
 #define ARRSIZE(arr) (sizeof(arr) / sizeof(arr[0]))
-
-/*
- * Types
- */
-
-typedef struct {
-    char* heading;
-    char* text;
-} Text_Block;
-
-typedef struct {
-    char* heading;
-    char* text;
-} Entry;
-
-typedef struct {
-    char* title;
-    char* copyright;
-
-    Entry* entries;
-    int    entry_count;
-    int    entry_cap;
-} Subbook;
-
-typedef struct {
-    char character_code[32];
-    char disc_code[32];
-
-    Subbook* subbooks;
-    int      subbook_count;
-} Book;
-
-typedef enum {
-    READ_MODE_TEXT,
-    READ_MODE_HEADING,
-} Read_Mode;
-
-/*
- * Functions
- */
-
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context, const EB_Position* position, Read_Mode mode);
-void free_book(Book* book);
-void dump_book(Book* book, bool pretty_print, FILE* fp);
 
 #endif /* UTIL_H */

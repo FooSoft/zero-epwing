@@ -17,10 +17,13 @@
  */
 
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <getopt.h>
 
 #include "convert.h"
 #include "util.h"
+#include "book.h"
 #include "hooks.h"
 #include "gaiji.h"
 
@@ -32,10 +35,10 @@
  * Local functions
  */
 
-static void export_subbook_entries(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Context* context) {
-    if (subbook->entry_cap == 0) {
-        subbook->entry_cap = 16384;
-        subbook->entries = malloc(subbook->entry_cap * sizeof(Entry));
+static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Context* context) {
+    if (subbook->entry_capacity == 0) {
+        subbook->entry_capacity = 16384;
+        subbook->entries = malloc(subbook->entry_capacity * sizeof(Book_Entry));
     }
 
     EB_Hit hits[256];
@@ -49,32 +52,20 @@ static void export_subbook_entries(Subbook* subbook, EB_Book* eb_book, EB_Hookse
         for (int i = 0; i < hit_count; ++i) {
             EB_Hit* hit = hits + i;
 
-            if (subbook->entry_count == subbook->entry_cap) {
-                subbook->entry_cap *= 2;
-                subbook->entries = realloc(subbook->entries, subbook->entry_cap * sizeof(Entry));
+            if (subbook->entry_count == subbook->entry_capacity) {
+                subbook->entry_capacity *= 2;
+                subbook->entries = realloc(subbook->entries, subbook->entry_capacity * sizeof(Book_Entry));
             }
 
-            Entry* entry = subbook->entries + subbook->entry_count++;
-            entry->heading = read_book_data(
-                eb_book,
-                eb_hookset,
-                context,
-                &hit->heading,
-                READ_MODE_HEADING
-            );
-            entry->text = read_book_data(
-                eb_book,
-                eb_hookset,
-                context,
-                &hit->text,
-                READ_MODE_TEXT
-            );
+            Book_Entry* entry = subbook->entries + subbook->entry_count++;
+            entry->heading = book_read(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, context);
+            entry->text = book_read(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, context);
         }
     }
     while (hit_count > 0);
 }
 
-static void export_subbook(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
+static void export_subbook(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
     Gaiji_Context context = {};
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
@@ -85,7 +76,7 @@ static void export_subbook(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_ho
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = read_book_data(eb_book, eb_hookset, &context, &position, READ_MODE_TEXT);
+            subbook->copyright = book_read(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, &context);
         }
     }
 
@@ -161,9 +152,9 @@ static void export_book(Book* book, const char path[]) {
         EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
         if ((error = eb_subbook_list(&eb_book, sub_codes, &book->subbook_count)) == EB_SUCCESS) {
             if (book->subbook_count > 0) {
-                book->subbooks = calloc(book->subbook_count, sizeof(Subbook));
+                book->subbooks = calloc(book->subbook_count, sizeof(Book_Subbook));
                 for (int i = 0; i < book->subbook_count; ++i) {
-                    Subbook* subbook = book->subbooks + i;
+                    Book_Subbook* subbook = book->subbooks + i;
                     if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
                         export_subbook(subbook, &eb_book, &eb_hookset);
                     }
@@ -210,8 +201,8 @@ int main(int argc, char *argv[]) {
 
     Book book = {};
     export_book(&book, argv[optind]);
-    dump_book(&book, pretty_print, stdout);
-    free_book(&book);
+    book_dump(&book, pretty_print, stdout);
+    book_free(&book);
 
     return 0;
 }

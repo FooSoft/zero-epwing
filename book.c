@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdbool.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "util.h"
+#include "book.h"
 #include "convert.h"
+#include "util.h"
 
 #include "eb/eb/eb.h"
 #include "eb/eb/error.h"
@@ -33,12 +32,12 @@
  * Local functions
  */
 
-static void encode_entry(Entry* entry, json_t* entry_json) {
+static void encode_entry(Book_Entry* entry, json_t* entry_json) {
     json_object_set_new(entry_json, "heading", json_string(entry->heading));
     json_object_set_new(entry_json, "text", json_string(entry->text));
 }
 
-static void encode_subbook(Subbook* subbook, json_t* subbook_json) {
+static void encode_subbook(Book_Subbook* subbook, json_t* subbook_json) {
     if (subbook->title != NULL) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
     }
@@ -79,7 +78,7 @@ static void encode_book(Book* book, json_t* book_json) {
  * Exported functions
  */
 
-char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context, const EB_Position* position, Read_Mode mode) {
+char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Context* context) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -89,7 +88,7 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context,
     EB_Error_Code error;
 
     switch (mode) {
-        case READ_MODE_TEXT:
+        case BOOK_MODE_TEXT:
             error = eb_read_text(
                 book,
                 NULL,
@@ -100,7 +99,7 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context,
                 &data_length
             );
             break;
-        case READ_MODE_HEADING:
+        case BOOK_MODE_HEADING:
             error = eb_read_heading(
                 book,
                 NULL,
@@ -128,14 +127,14 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context,
     return result;
 }
 
-void free_book(Book* book) {
+void book_free(Book* book) {
     for (int i = 0; i < book->subbook_count; ++i) {
-        Subbook* subbook = book->subbooks + i;
+        Book_Subbook* subbook = book->subbooks + i;
         free(subbook->title);
         free(subbook->copyright);
 
         for (int j = 0; j < subbook->entry_count; ++j) {
-            Entry* entry = subbook->entries + j;
+            Book_Entry* entry = subbook->entries + j;
             free(entry->heading);
             free(entry->text);
         }
@@ -144,7 +143,7 @@ void free_book(Book* book) {
     }
 }
 
-void dump_book(Book* book, bool pretty_print, FILE* fp) {
+void book_dump(Book* book, bool pretty_print, FILE* fp) {
     json_t* book_json = json_object();
     encode_book(book, book_json);
 
