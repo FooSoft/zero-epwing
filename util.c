@@ -124,7 +124,7 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context,
         return NULL;
     }
 
-    gaiji_fixup_stub(result, strlen(result) + 1, result);
+    gaiji_stub_decode(result, strlen(result) + 1, result);
     return result;
 }
 

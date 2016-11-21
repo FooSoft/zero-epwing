@@ -79,7 +79,7 @@ static void export_subbook(Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_ho
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
-        context = *gaiji_select_context(subbook->title);
+        context = *gaiji_context_select(subbook->title);
     }
 
     if (eb_have_copyright(eb_book)) {

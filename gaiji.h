@@ -23,8 +23,8 @@
  * Constants
  */
 
-#define MAX_UTF8_BYTES 9
-#define MAX_STUB_BYTES 32
+#define MAX_UTF8_BYTES   9
+#define MAX_STUB_BYTES   32
 #define MAX_CONTEXT_NAME 256
 
 /*
@@ -53,8 +53,8 @@ typedef enum {
  * Functions
  */
 
-const Gaiji_Context* gaiji_select_context(const char name[]);
-void gaiji_build_stub(char output[], int size, int code, const Gaiji_Context* context, Gaiji_Width width);
-void gaiji_fixup_stub(char output[], int size, const char input[]);
+const Gaiji_Context* gaiji_context_select(const char name[]);
+void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Context* context, Gaiji_Width width);
+void gaiji_stub_decode(char output[], int size, const char input[]);
 
 #endif /* GAIJI_H */

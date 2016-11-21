@@ -105,7 +105,7 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
  * Exported functions
  */
 
-const Gaiji_Context* gaiji_select_context(const char name[]) {
+const Gaiji_Context* gaiji_context_select(const char name[]) {
     for (unsigned i = 0; i < ARRSIZE(gaiji_contexts); ++i) {
         const Gaiji_Context* context = gaiji_contexts + i;
         if (strcmp(context->name, name) == 0) {
@@ -116,7 +116,7 @@ const Gaiji_Context* gaiji_select_context(const char name[]) {
     return NULL;
 }
 
-void gaiji_build_stub(char output[], int size, int code, const Gaiji_Context* context, Gaiji_Width width) {
+void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Context* context, Gaiji_Width width) {
     do {
         if (context == NULL) {
             break;
@@ -153,7 +153,7 @@ void gaiji_build_stub(char output[], int size, int code, const Gaiji_Context* co
     output[size - 1] = 0;
 }
 
-void gaiji_fixup_stub(char output[], int size, const char input[]) {
+void gaiji_stub_decode(char output[], int size, const char input[]) {
     const char* ptr_in = input;
     char* ptr_out = output;
     bool decode = false;

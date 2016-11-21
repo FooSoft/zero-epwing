@@ -107,7 +107,7 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
 
     assert(argc > 0);
     char stub[MAX_STUB_BYTES];
-    gaiji_build_stub(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_NARROW);
+    gaiji_stub_encode(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_NARROW);
     eb_write_text_string(book, stub);
 
     return 0;
@@ -126,7 +126,7 @@ static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
 
     assert(argc > 0);
     char stub[MAX_STUB_BYTES];
-    gaiji_build_stub(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_WIDE);
+    gaiji_stub_encode(stub, ARRSIZE(stub), argv[0], container, GAIJI_WIDTH_WIDE);
     eb_write_text_string(book, stub);
 
     return 0;
