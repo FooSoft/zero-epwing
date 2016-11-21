@@ -93,7 +93,7 @@ static void export_subbook(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* 
     }
 }
 
-static void export_book(Book* book, const char path[]) {
+static void export_book(Book* book, const char path[], bool markup) {
     do {
         EB_Error_Code error;
         if ((error = eb_initialize_library()) != EB_SUCCESS) {
@@ -106,7 +106,7 @@ static void export_book(Book* book, const char path[]) {
 
         EB_Hookset eb_hookset;
         eb_initialize_hookset(&eb_hookset);
-        hooks_install(&eb_hookset);
+        hooks_install(&eb_hookset, markup);
 
         if ((error = eb_bind(&eb_book, path)) != EB_SUCCESS) {
             fprintf(stderr, "Failed to bind book: %s\n", eb_error_message(error));
@@ -181,12 +181,16 @@ static void export_book(Book* book, const char path[]) {
 
 int main(int argc, char *argv[]) {
     bool pretty_print = false;
+    bool markup = false;
 
     char opt = 0;
     while ((opt = getopt(argc, argv, "p")) != -1) {
         switch (opt) {
             case 'p':
                 pretty_print = true;
+                break;
+            case 'm':
+                markup = true;
                 break;
             default:
                 exit(EXIT_FAILURE);
@@ -200,7 +204,7 @@ int main(int argc, char *argv[]) {
     }
 
     Book book = {};
-    export_book(&book, argv[optind]);
+    export_book(&book, argv[optind], markup);
     book_dump(&book, pretty_print, stdout);
     book_free(&book);
 

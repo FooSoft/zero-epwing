@@ -19,12 +19,14 @@
 #ifndef HOOKS_H
 #define HOOKS_H
 
+#include <stdbool.h>
+
 #include "eb/eb/eb.h"
 
 /*
  * Exported functions
  */
 
-void hooks_install(EB_Hookset* hookset);
+void hooks_install(EB_Hookset* hookset, bool markup);
 
 #endif /* HOOKS_H */
