@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
     bool markup = false;
 
     char opt = 0;
-    while ((opt = getopt(argc, argv, "p")) != -1) {
+    while ((opt = getopt(argc, argv, "pm")) != -1) {
         switch (opt) {
             case 'p':
                 pretty_print = true;
