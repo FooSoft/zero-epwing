@@ -115,7 +115,17 @@ char* read_book_data(EB_Book* book, EB_Hookset* hookset, Gaiji_Context* context,
             return NULL;
     }
 
-    return error == EB_SUCCESS ? eucjp_to_utf8(data) : NULL;
+    if (error != EB_SUCCESS) {
+        return NULL;
+    }
+
+    char * result = eucjp_to_utf8(data);
+    if (result == NULL) {
+        return NULL;
+    }
+
+    gaiji_fixup_stub(result, strlen(result) + 1, result);
+    return result;
 }
 
 void free_book(Book* book) {

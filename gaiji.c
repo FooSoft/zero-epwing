@@ -101,46 +101,6 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
     strncat(output, "}", size);
 }
 
-static void decode_sequence(char output[], int size, const char input[]) {
-    const char* ptr_in = input;
-    char* ptr_out = output;
-    bool decode = false;
-
-    while (*ptr_in != 0 && ptr_out - output < size - 1) {
-        if (strncmp(ptr_in, "{#", 2) == 0) {
-            decode = true;
-            ptr_in += 2;
-        }
-
-        if (decode) {
-            const char high_ascii = *ptr_in++;
-            if (high_ascii == 0) {
-                break;
-            }
-
-            const char low_ascii = *ptr_in++;
-            if (low_ascii == 0) {
-                break;
-            }
-
-            if (high_ascii == '}') {
-                decode = false;
-                --ptr_in;
-            }
-            else {
-                assert(is_ascii_nibble(high_ascii));
-                assert(is_ascii_nibble(low_ascii));
-                *ptr_out++ = ascii_to_nibble(high_ascii) << 0x04 | ascii_to_nibble(low_ascii);
-            }
-        }
-        else {
-            *ptr_out++ = *ptr_in++;
-        }
-    }
-
-    *ptr_out = 0;
-}
-
 /*
  * Exported functions
  */
@@ -194,7 +154,41 @@ void gaiji_build_stub(char output[], int size, int code, const Gaiji_Context* co
 }
 
 void gaiji_fixup_stub(char output[], int size, const char input[]) {
-    (void)output;
-    (void)size;
-    (void)input;
+    const char* ptr_in = input;
+    char* ptr_out = output;
+    bool decode = false;
+
+    while (*ptr_in != 0 && ptr_out - output < size - 1) {
+        if (strncmp(ptr_in, "{#", 2) == 0) {
+            decode = true;
+            ptr_in += 2;
+        }
+
+        if (decode) {
+            const char high_ascii = *ptr_in++;
+            if (high_ascii == 0) {
+                break;
+            }
+
+            const char low_ascii = *ptr_in++;
+            if (low_ascii == 0) {
+                break;
+            }
+
+            if (high_ascii == '}') {
+                decode = false;
+                --ptr_in;
+            }
+            else {
+                assert(is_ascii_nibble(high_ascii));
+                assert(is_ascii_nibble(low_ascii));
+                *ptr_out++ = ascii_to_nibble(high_ascii) << 0x04 | ascii_to_nibble(low_ascii);
+            }
+        }
+        else {
+            *ptr_out++ = *ptr_in++;
+        }
+    }
+
+    *ptr_out = 0;
 }
