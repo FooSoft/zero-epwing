@@ -19,6 +19,8 @@
 #ifndef GAIJI_H
 #define GAIJI_H
 
+#include <stdbool.h>
+
 /*
  * Constants
  */
@@ -44,6 +46,11 @@ typedef struct {
     int                count_narrow;
 } Gaiji_Table;
 
+typedef struct {
+    Gaiji_Table* tables;
+    int          count;
+} Gaiji_Context;
+
 typedef enum {
     GAIJI_WIDTH_WIDE,
     GAIJI_WIDTH_NARROW,
@@ -53,7 +60,11 @@ typedef enum {
  * Functions
  */
 
+bool gaiji_context_init(Gaiji_Context* context, const char path[]);
+void gaiji_context_destroy(Gaiji_Context* context);
+
 const Gaiji_Table* gaiji_table_select(const char name[]);
+
 void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* table, Gaiji_Width width);
 void gaiji_stub_decode(char output[], int size, const char input[]);
 

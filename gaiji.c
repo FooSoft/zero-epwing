@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "util.h"
@@ -206,4 +207,17 @@ void gaiji_stub_decode(char output[], int size, const char input[]) {
     }
 
     *ptr_out = 0;
+}
+
+bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
+    (void)path;
+    context->count = 0;
+    context->tables = NULL;
+    return true;
+}
+
+void gaiji_context_destroy(Gaiji_Context* context) {
+    free(context->tables);
+    context->tables = NULL;
+    context->count = 0;
 }
