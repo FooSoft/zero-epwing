@@ -42,7 +42,13 @@ typedef enum {
  * Local functions
  */
 
-static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Table* table) {
+static char* book_read(
+    EB_Book*           book,
+    EB_Hookset*        hookset,
+    const EB_Position* position,
+    Book_Mode          mode,
+    Gaiji_Table*       table
+) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -91,12 +97,12 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
     return result;
 }
 
-static void encode_entry(Book_Entry* entry, json_t* entry_json) {
+static void entry_encode(Book_Entry* entry, json_t* entry_json) {
     json_object_set_new(entry_json, "heading", json_string(entry->heading));
     json_object_set_new(entry_json, "text", json_string(entry->text));
 }
 
-static void encode_subbook(Book_Subbook* subbook, json_t* subbook_json) {
+static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
     if (subbook->title != NULL) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
     }
@@ -108,7 +114,7 @@ static void encode_subbook(Book_Subbook* subbook, json_t* subbook_json) {
     json_t* entry_json_array = json_array();
     for (int i = 0; i < subbook->entry_count; ++i) {
         json_t* entry_json = json_object();
-        encode_entry(subbook->entries + i, entry_json);
+        entry_encode(subbook->entries + i, entry_json);
         json_array_append(entry_json_array, entry_json);
         json_decref(entry_json);
     }
@@ -117,14 +123,14 @@ static void encode_subbook(Book_Subbook* subbook, json_t* subbook_json) {
     json_decref(entry_json_array);
 }
 
-static void encode_book(Book* book, json_t* book_json) {
+static void book_encode(Book* book, json_t* book_json) {
     json_object_set_new(book_json, "characterCode", json_string(book->character_code));
     json_object_set_new(book_json, "discCode", json_string(book->disc_code));
 
     json_t* subbook_json_array = json_array();
     for (int i = 0; i < book->subbook_count; ++i) {
         json_t* subbook_json = json_object();
-        encode_subbook(book->subbooks + i, subbook_json);
+        subbok_encode(book->subbooks + i, subbook_json);
         json_array_append(subbook_json_array, subbook_json);
         json_decref(subbook_json);
     }
@@ -133,7 +139,7 @@ static void encode_book(Book* book, json_t* book_json) {
     json_decref(subbook_json_array);
 }
 
-static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Table* table) {
+static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, Gaiji_Table* table) {
     if (subbook->entry_capacity == 0) {
         subbook->entry_capacity = 16384;
         subbook->entries = malloc(subbook->entry_capacity * sizeof(Book_Entry));
@@ -163,7 +169,7 @@ static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_H
     while (hit_count > 0);
 }
 
-static void export_subbook(Book_Subbook* subbook, const Gaiji_Context* context, EB_Book* eb_book, EB_Hookset* eb_hookset) {
+static void subbook_export(Book_Subbook* subbook, const Gaiji_Context* context, EB_Book* eb_book, EB_Hookset* eb_hookset) {
     Gaiji_Table table = {};
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
@@ -179,21 +185,25 @@ static void export_subbook(Book_Subbook* subbook, const Gaiji_Context* context, 
     }
 
     if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(subbook, eb_book, eb_hookset, &table);
+        subbook_entries_export(subbook, eb_book, eb_hookset, &table);
     }
 
     if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(subbook, eb_book, eb_hookset, &table);
+        subbook_entries_export(subbook, eb_book, eb_hookset, &table);
     }
 
     if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
-        export_subbook_entries(subbook, eb_book, eb_hookset, &table);
+        subbook_entries_export(subbook, eb_book, eb_hookset, &table);
     }
 }
 
 /*
  * Exported functions
  */
+
+void book_init(Book* book) {
+    memset(book, 0, sizeof(Book));
+}
 
 void book_free(Book* book) {
     for (int i = 0; i < book->subbook_count; ++i) {
@@ -213,7 +223,7 @@ void book_free(Book* book) {
 
 void book_dump(Book* book, bool pretty_print, FILE* fp) {
     json_t* book_json = json_object();
-    encode_book(book, book_json);
+    book_encode(book, book_json);
 
     char* output = json_dumps(book_json, pretty_print ? JSON_INDENT(4) : JSON_COMPACT);
     if (output != NULL) {
@@ -288,7 +298,7 @@ void book_export(Book* book, const Gaiji_Context* context, const char path[], bo
                 for (int i = 0; i < book->subbook_count; ++i) {
                     Book_Subbook* subbook = book->subbooks + i;
                     if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                        export_subbook(subbook, context, &eb_book, &eb_hookset);
+                        subbook_export(subbook, context, &eb_book, &eb_hookset);
                     }
                     else {
                         fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));

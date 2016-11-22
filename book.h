@@ -22,8 +22,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "eb/eb/eb.h"
-
 #include "gaiji.h"
 
 /*

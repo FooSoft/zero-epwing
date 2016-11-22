@@ -236,10 +236,16 @@ void gaiji_stub_decode(char output[], int size, const char input[]) {
 }
 
 bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
+    context->count = 0;
+    context->tables = NULL;
+
+    if (path == NULL) {
+        return true;
+    }
+
     json_t* table_array_json = json_load_file(path, 0, NULL);
     if (table_array_json == NULL) {
-        context->count = 0;
-        context->tables = NULL;
+        fprintf(stderr, "Failed to load file %s\n", path);
         return false;
     }
 

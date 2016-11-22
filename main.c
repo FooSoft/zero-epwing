@@ -53,7 +53,8 @@ int main(int argc, char *argv[]) {
     Gaiji_Context context;
     gaiji_context_init(&context, "gaiji.json");
 
-    Book book = {};
+    Book book;
+    book_init(&book);
     book_export(&book, &context, argv[optind], markup);
     book_dump(&book, pretty_print, stdout);
     book_free(&book);
