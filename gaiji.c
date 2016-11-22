@@ -119,25 +119,25 @@ static void parse_table(Gaiji_Table* table, const json_t* table_json) {
 
     parse_entries(
         (Gaiji_Entry**)&table->table_wide,
-        &table->count_wide,
+        &table->table_wide_size,
         json_object_get(table_json, "wide")
     );
 
     parse_entries(
         (Gaiji_Entry**)&table->table_narrow,
-        &table->count_narrow,
+        &table->table_narrow_size,
         json_object_get(table_json, "narrow")
     );
 }
 
 static void parse_table_array(Gaiji_Context* context, const json_t* table_array_json) {
-    context->count = json_array_size(table_array_json);
-    if (context->count == 0) {
+    context->table_count = json_array_size(table_array_json);
+    if (context->table_count == 0) {
         context->tables = NULL;
     }
     else {
-        context->tables = malloc(sizeof(Gaiji_Table) * context->count);
-        for (int i = 0; i < context->count; ++i) {
+        context->tables = malloc(sizeof(Gaiji_Table) * context->table_count);
+        for (int i = 0; i < context->table_count; ++i) {
             parse_table(context->tables + i, json_array_get(table_array_json, i));
         }
     }
@@ -148,7 +148,7 @@ static void parse_table_array(Gaiji_Context* context, const json_t* table_array_
  */
 
 const Gaiji_Table* gaiji_table_select(const Gaiji_Context* context, const char name[]) {
-    for (int i = 0; i < context->count; ++i) {
+    for (int i = 0; i < context->table_count; ++i) {
         const Gaiji_Table* table = context->tables + i;
         if (strstr(name, table->name) != NULL) {
             return table;
@@ -170,11 +170,11 @@ void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* tab
         switch (width) {
             case GAIJI_WIDTH_WIDE:
                 entries = table->table_wide;
-                count = table->count_wide;
+                count = table->table_wide_size;
                 break;
             case GAIJI_WIDTH_NARROW:
                 entries = table->table_narrow;
-                count = table->count_narrow;
+                count = table->table_narrow_size;
                 break;
         }
 
@@ -236,7 +236,7 @@ void gaiji_stub_decode(char output[], int size, const char input[]) {
 }
 
 bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
-    context->count = 0;
+    context->table_count = 0;
     context->tables = NULL;
 
     if (path == NULL) {
@@ -255,13 +255,14 @@ bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
 }
 
 void gaiji_context_destroy(Gaiji_Context* context) {
-    for (int i = 0; i < context->count; ++i) {
+    for (int i = 0; i < context->table_count; ++i) {
         Gaiji_Table* table = context->tables + i;
         free((Gaiji_Entry*)table->table_wide);
         free((Gaiji_Entry*)table->table_narrow);
     }
 
     free(context->tables);
+
     context->tables = NULL;
-    context->count = 0;
+    context->table_count = 0;
 }

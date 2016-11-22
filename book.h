@@ -34,18 +34,16 @@ typedef struct {
 } Book_Entry;
 
 typedef struct {
-    char* title;
-    char* copyright;
-
+    char*       title;
+    char*       copyright;
     Book_Entry* entries;
     int         entry_count;
     int         entry_capacity;
 } Book_Subbook;
 
 typedef struct {
-    char character_code[32];
-    char disc_code[32];
-
+    char          character_code[32];
+    char          disc_code[32];
     Book_Subbook* subbooks;
     int           subbook_count;
 } Book;

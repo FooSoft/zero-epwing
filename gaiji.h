@@ -40,14 +40,14 @@ typedef struct {
 typedef struct {
     char               name[256];
     const Gaiji_Entry* table_wide;
-    int                count_wide;
+    int                table_wide_size;
     const Gaiji_Entry* table_narrow;
-    int                count_narrow;
+    int                table_narrow_size;
 } Gaiji_Table;
 
 typedef struct {
     Gaiji_Table* tables;
-    int          count;
+    int          table_count;
 } Gaiji_Context;
 
 typedef enum {
