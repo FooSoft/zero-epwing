@@ -65,12 +65,12 @@ static void export_subbook_entries(Book_Subbook* subbook, EB_Book* eb_book, EB_H
     while (hit_count > 0);
 }
 
-static void export_subbook(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
+static void export_subbook(Book_Subbook* subbook, const Gaiji_Context* context, EB_Book* eb_book, EB_Hookset* eb_hookset) {
     Gaiji_Table table = {};
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
-        table = *gaiji_table_select(subbook->title);
+        table = *gaiji_table_select(context, subbook->title);
     }
 
     if (eb_have_copyright(eb_book)) {
@@ -93,7 +93,7 @@ static void export_subbook(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* 
     }
 }
 
-static void export_book(Book* book, const char path[], bool markup) {
+static void export_book(Book* book, const Gaiji_Context* context, const char path[], bool markup) {
     do {
         EB_Error_Code error;
         if ((error = eb_initialize_library()) != EB_SUCCESS) {
@@ -156,7 +156,7 @@ static void export_book(Book* book, const char path[], bool markup) {
                 for (int i = 0; i < book->subbook_count; ++i) {
                     Book_Subbook* subbook = book->subbooks + i;
                     if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                        export_subbook(subbook, &eb_book, &eb_hookset);
+                        export_subbook(subbook, context, &eb_book, &eb_hookset);
                     }
                     else {
                         fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));
@@ -203,10 +203,14 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    Gaiji_Context context;
+    gaiji_context_init(&context, "gaiji.json");
+
     Book book = {};
-    export_book(&book, argv[optind], markup);
+    export_book(&book, &context, argv[optind], markup);
     book_dump(&book, pretty_print, stdout);
     book_free(&book);
 
+    gaiji_context_destroy(&context);
     return 0;
 }

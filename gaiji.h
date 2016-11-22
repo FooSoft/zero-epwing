@@ -62,7 +62,7 @@ typedef enum {
 bool gaiji_context_init(Gaiji_Context* context, const char path[]);
 void gaiji_context_destroy(Gaiji_Context* context);
 
-const Gaiji_Table* gaiji_table_select(const char name[]);
+const Gaiji_Table* gaiji_table_select(const Gaiji_Context* context, const char name[]);
 
 void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* table, Gaiji_Width width);
 void gaiji_stub_decode(char output[], int size, const char input[]);

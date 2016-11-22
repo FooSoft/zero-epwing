@@ -27,43 +27,6 @@
 #include "gaiji.h"
 
 /*
- * Macros
- */
-
-#define GAIJI_TABLE(name, ents) {\
-    name,\
-    gaiji_table_##ents##_wide,\
-    ARRSIZE(gaiji_table_##ents##_wide),\
-    gaiji_table_##ents##_narrow,\
-    ARRSIZE(gaiji_table_##ents##_narrow)\
-}
-
-/*
- * Local data
- */
-
-#include "tables/gaiji_table_chujiten.h"
-#include "tables/gaiji_table_daijirin.h"
-#include "tables/gaiji_table_daijisen.h"
-#include "tables/gaiji_table_genius.h"
-#include "tables/gaiji_table_kojien.h"
-#include "tables/gaiji_table_meikyojj.h"
-#include "tables/gaiji_table_meikyou.h"
-#include "tables/gaiji_table_snmkg99.h"
-#include "tables/gaiji_table_wadai5.h"
-
-static const Gaiji_Table gaiji_tables[] = {
-    GAIJI_TABLE("ジーニアス英和辞典", genius),
-    GAIJI_TABLE("スーパー大辞林", daijirin),
-    GAIJI_TABLE("大辞泉", daijisen),
-    GAIJI_TABLE("広辞苑第六版", kojien),
-    GAIJI_TABLE("新和英大辞典", wadai5),
-    GAIJI_TABLE("新明解国語辞典　", snmkg99),
-    GAIJI_TABLE("新英和・和英中辞典", chujiten),
-    GAIJI_TABLE("明鏡国語辞典", meikyojj),
-};
-
-/*
  * Local functions
  */
 
@@ -184,10 +147,10 @@ static void parse_table_array(Gaiji_Context* context, const json_t* table_array_
  * Exported functions
  */
 
-const Gaiji_Table* gaiji_table_select(const char name[]) {
-    for (unsigned i = 0; i < ARRSIZE(gaiji_tables); ++i) {
-        const Gaiji_Table* table = gaiji_tables + i;
-        if (strcmp(table->name, name) == 0) {
+const Gaiji_Table* gaiji_table_select(const Gaiji_Context* context, const char name[]) {
+    for (int i = 0; i < context->count; ++i) {
+        const Gaiji_Table* table = context->tables + i;
+        if (strstr(name, table->name) != NULL) {
             return table;
         }
     }
