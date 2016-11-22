@@ -25,9 +25,8 @@
  * Constants
  */
 
-#define MAX_UTF8_BYTES 9
+#define MAX_UTF8_BYTES 10
 #define MAX_STUB_BYTES 32
-#define MAX_TABLE_NAME 256
 
 /*
  * Types
@@ -39,7 +38,7 @@ typedef struct {
 } Gaiji_Entry;
 
 typedef struct {
-    char               name[MAX_TABLE_NAME];
+    char               name[256];
     const Gaiji_Entry* table_wide;
     int                count_wide;
     const Gaiji_Entry* table_narrow;
