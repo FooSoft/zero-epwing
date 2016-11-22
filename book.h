@@ -52,17 +52,13 @@ typedef struct {
     int           subbook_count;
 } Book;
 
-typedef enum {
-    BOOK_MODE_TEXT,
-    BOOK_MODE_HEADING,
-} Book_Mode;
-
 /*
  * Functions
  */
 
-char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, Gaiji_Table* table);
+void book_init(Book* book);
 void book_free(Book* book);
+void book_export(Book* book, const Gaiji_Context* context, const char path[], bool markup);
 void book_dump(Book* book, bool pretty_print, FILE* fp);
 
 #endif /* BOOK_H */
