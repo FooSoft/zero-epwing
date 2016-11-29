@@ -40,7 +40,7 @@ typedef struct {
  */
 
 static error_t argp_parser(int key, char* arg, struct argp_state* state) {
-    Options* options = (Options *)state->input;
+    Options* options = (Options*)state->input;
 
     switch (key) {
         case 'd':
