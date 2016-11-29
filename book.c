@@ -42,18 +42,12 @@ typedef enum {
  * Local functions
  */
 
-static char* book_read(
-    EB_Book*           book,
-    EB_Hookset*        hookset,
-    const EB_Position* position,
-    Book_Mode          mode,
-    const Font_Table*  table
-) {
+static char* book_read( EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
 
-    char data[1024];
+    char data[1024] = {};
     ssize_t data_length = 0;
     EB_Error_Code error;
 
@@ -115,28 +109,24 @@ static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
     for (int i = 0; i < subbook->entry_count; ++i) {
         json_t* entry_json = json_object();
         entry_encode(subbook->entries + i, entry_json);
-        json_array_append(entry_json_array, entry_json);
-        json_decref(entry_json);
+        json_array_append_new(entry_json_array, entry_json);
     }
 
-    json_object_set(subbook_json, "entries", entry_json_array);
-    json_decref(entry_json_array);
+    json_object_set_new(subbook_json, "entries", entry_json_array);
 }
 
 static void book_encode(Book* book, json_t* book_json) {
-    json_object_set_new(book_json, "characterCode", json_string(book->char_code));
+    json_object_set_new(book_json, "charCode", json_string(book->char_code));
     json_object_set_new(book_json, "discCode", json_string(book->disc_code));
 
     json_t* subbook_json_array = json_array();
     for (int i = 0; i < book->subbook_count; ++i) {
         json_t* subbook_json = json_object();
         subbok_encode(book->subbooks + i, subbook_json);
-        json_array_append(subbook_json_array, subbook_json);
-        json_decref(subbook_json);
+        json_array_append_new(subbook_json_array, subbook_json);
     }
 
-    json_object_set(book_json, "subbooks", subbook_json_array);
-    json_decref(subbook_json_array);
+    json_object_set_new(book_json, "subbooks", subbook_json_array);
 }
 
 static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, const Font_Table* table) {
@@ -145,7 +135,7 @@ static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_H
         subbook->entries = malloc(subbook->entry_alloc * sizeof(Book_Entry));
     }
 
-    EB_Hit hits[256];
+    EB_Hit hits[256] = {};
     int hit_count = 0;
 
     do {
