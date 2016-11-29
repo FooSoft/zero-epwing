@@ -245,7 +245,7 @@ bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
 
     json_t* table_array_json = json_load_file(path, 0, NULL);
     if (table_array_json == NULL) {
-        fprintf(stderr, "Failed to load file %s\n", path);
+        fprintf(stderr, "Failed to load font file %s\n", path);
         return false;
     }
 

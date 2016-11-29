@@ -62,7 +62,7 @@ static error_t argp_parser(int key, char* arg, struct argp_state* state) {
             options->pretty_print = true;
             break;
         case ARGP_KEY_END:
-            if (strlen(options->dict_path) == 0) {
+            if (*options->dict_path == 0) {
                 argp_usage(state);
             }
             break;
@@ -100,14 +100,19 @@ int main(int argc, char *argv[]) {
     argp_parse(&argp, argc, argv, 0, 0, &options);
 
     Gaiji_Context context;
-    gaiji_context_init(&context, options.font_path);
+    if (!gaiji_context_init(&context, *options.font_path == 0 ? NULL : options.font_path)) {
+        return 1;
+    }
 
     Book book;
     book_init(&book);
-    book_export(&book, &context, options.dict_path, options.markup);
-    book_dump(&book, options.pretty_print, stdout);
+
+    const bool success =
+        book_export(&book, &context, options.dict_path, options.markup) &&
+        book_dump(&book, options.pretty_print, stdout);
+
     book_free(&book);
 
     gaiji_context_destroy(&context);
-    return 0;
+    return success ? 0 : 1;
 }
