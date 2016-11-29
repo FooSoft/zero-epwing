@@ -219,6 +219,8 @@ void book_free(Book* book) {
 
         free(subbook->entries);
     }
+
+    memset(book, 0, sizeof(Book));
 }
 
 bool book_dump(Book* book, bool pretty_print, FILE* fp) {
@@ -258,9 +260,9 @@ bool book_export(Book* book, const Font_Context* context, const char path[], boo
         return false;
     }
 
-    EB_Character_Code character_code;
-    if (eb_character_code(&eb_book, &character_code) == EB_SUCCESS) {
-        switch (character_code) {
+    EB_Character_Code char_code;
+    if ((error = eb_character_code(&eb_book, &char_code)) == EB_SUCCESS) {
+        switch (char_code) {
             case EB_CHARCODE_ISO8859_1:
                 strcpy(book->char_code, "iso8859-1");
                 break;
@@ -275,9 +277,12 @@ bool book_export(Book* book, const Font_Context* context, const char path[], boo
                 break;
         }
     }
+    else {
+        fprintf(stderr, "Failed to get character code: %s\n", eb_error_message(error));
+    }
 
     EB_Disc_Code disc_code;
-    if (eb_disc_type(&eb_book, &disc_code) == EB_SUCCESS) {
+    if ((error = eb_disc_type(&eb_book, &disc_code)) == EB_SUCCESS) {
         switch (disc_code) {
             case EB_DISC_EB:
                 strcpy(book->disc_code, "eb");
@@ -289,6 +294,9 @@ bool book_export(Book* book, const Font_Context* context, const char path[], boo
                 strcpy(book->disc_code, "invalid");
                 break;
         }
+    }
+    else {
+        fprintf(stderr, "Failed to get disc code: %s\n", eb_error_message(error));
     }
 
     EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
