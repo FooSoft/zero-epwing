@@ -16,47 +16,96 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <getopt.h>
+#include <string.h>
+#include <stdbool.h>
+#include <argp.h>
 
+#include "util.h"
 #include "book.h"
 #include "gaiji.h"
+
+/*
+ * Local types
+ */
+
+typedef struct {
+    char dict_path[256];
+    char font_path[256];
+    bool pretty_print;
+    bool markup;
+} Options;
+
+/*
+ * Local functions
+ */
+
+static error_t argp_parser(int key, char* arg, struct argp_state* state) {
+    Options* options = (Options *)state->input;
+
+    switch (key) {
+        case 'd':
+            if (arg != NULL) {
+                strncpy(options->dict_path, arg, ARRSIZE(options->dict_path));
+                options->dict_path[ARRSIZE(options->dict_path) - 1] = 0;
+            }
+            break;
+        case 'f':
+            if (arg != NULL) {
+                strncpy(options->font_path, arg, ARRSIZE(options->font_path));
+                options->font_path[ARRSIZE(options->font_path) - 1] = 0;
+            }
+            break;
+        case 'm':
+            options->markup = true;
+            break;
+        case 'p':
+            options->pretty_print = true;
+            break;
+        case ARGP_KEY_END:
+            if (strlen(options->dict_path) == 0) {
+                argp_usage(state);
+            }
+            break;
+        default:
+            return ARGP_ERR_UNKNOWN;
+    }
+
+    return 0;
+}
 
 /*
  * Entry point
  */
 
 int main(int argc, char *argv[]) {
-    bool pretty_print = false;
-    bool markup = false;
+    const struct argp_option argp_options[] = {
+        { "dict",         'd', "PATH", 0,                   "dictionary resource to process",          0 },
+        { "font",         'f', "PATH", OPTION_ARG_OPTIONAL, "definition file for font translation",    0 },
+        { "pretty-print", 'p', NULL,   OPTION_ARG_OPTIONAL, "pretty print JSON output",                0 },
+        { "markup",       'm', NULL,   OPTION_ARG_OPTIONAL, "markup JSON output with formatting tags", 0 },
+        { }
+    };
 
-    char opt = 0;
-    while ((opt = getopt(argc, argv, "pm")) != -1) {
-        switch (opt) {
-            case 'p':
-                pretty_print = true;
-                break;
-            case 'm':
-                markup = true;
-                break;
-            default:
-                exit(EXIT_FAILURE);
-                break;
-        }
-    }
+    const struct argp argp = {
+        argp_options,
+        argp_parser,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+    };
 
-    if (optind >= argc) {
-        fprintf(stderr, "Usage: %s [-p] dictionary_path\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
+    Options options = { };
+    argp_parse(&argp, argc, argv, 0, 0, &options);
 
     Gaiji_Context context;
-    gaiji_context_init(&context, "gaiji.json");
+    gaiji_context_init(&context, options.font_path);
 
     Book book;
     book_init(&book);
-    book_export(&book, &context, argv[optind], markup);
-    book_dump(&book, pretty_print, stdout);
+    book_export(&book, &context, options.dict_path, options.markup);
+    book_dump(&book, options.pretty_print, stdout);
     book_free(&book);
 
     gaiji_context_destroy(&context);
