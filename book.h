@@ -38,11 +38,11 @@ typedef struct {
     char*       copyright;
     Book_Entry* entries;
     int         entry_count;
-    int         entry_capacity;
+    int         entry_alloc;
 } Book_Subbook;
 
 typedef struct {
-    char          character_code[32];
+    char          char_code[32];
     char          disc_code[32];
     Book_Subbook* subbooks;
     int           subbook_count;

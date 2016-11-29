@@ -124,7 +124,7 @@ static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
 }
 
 static void book_encode(Book* book, json_t* book_json) {
-    json_object_set_new(book_json, "characterCode", json_string(book->character_code));
+    json_object_set_new(book_json, "characterCode", json_string(book->char_code));
     json_object_set_new(book_json, "discCode", json_string(book->disc_code));
 
     json_t* subbook_json_array = json_array();
@@ -140,9 +140,9 @@ static void book_encode(Book* book, json_t* book_json) {
 }
 
 static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, const Font_Table* table) {
-    if (subbook->entry_capacity == 0) {
-        subbook->entry_capacity = 16384;
-        subbook->entries = malloc(subbook->entry_capacity * sizeof(Book_Entry));
+    if (subbook->entry_alloc == 0) {
+        subbook->entry_alloc = 16384;
+        subbook->entries = malloc(subbook->entry_alloc * sizeof(Book_Entry));
     }
 
     EB_Hit hits[256];
@@ -156,9 +156,9 @@ static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_H
         for (int i = 0; i < hit_count; ++i) {
             EB_Hit* hit = hits + i;
 
-            if (subbook->entry_count == subbook->entry_capacity) {
-                subbook->entry_capacity *= 2;
-                subbook->entries = realloc(subbook->entries, subbook->entry_capacity * sizeof(Book_Entry));
+            if (subbook->entry_count == subbook->entry_alloc) {
+                subbook->entry_alloc *= 2;
+                subbook->entries = realloc(subbook->entries, subbook->entry_alloc * sizeof(Book_Entry));
             }
 
             Book_Entry* entry = subbook->entries + subbook->entry_count++;
@@ -262,16 +262,16 @@ bool book_export(Book* book, const Font_Context* context, const char path[], boo
     if (eb_character_code(&eb_book, &character_code) == EB_SUCCESS) {
         switch (character_code) {
             case EB_CHARCODE_ISO8859_1:
-                strcpy(book->character_code, "iso8859-1");
+                strcpy(book->char_code, "iso8859-1");
                 break;
             case EB_CHARCODE_JISX0208:
-                strcpy(book->character_code, "jisx0208");
+                strcpy(book->char_code, "jisx0208");
                 break;
             case EB_CHARCODE_JISX0208_GB2312:
-                strcpy(book->character_code, "jisx0208/gb2312");
+                strcpy(book->char_code, "jisx0208/gb2312");
                 break;
             default:
-                strcpy(book->character_code, "invalid");
+                strcpy(book->char_code, "invalid");
                 break;
         }
     }
