@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GAIJI_H
-#define GAIJI_H
+#ifndef FONT_H
+#define FONT_H
 
 #include <stdbool.h>
 
@@ -35,36 +35,36 @@
 typedef struct {
     int  code;
     char utf8[MAX_UTF8_BYTES];
-} Gaiji_Entry;
+} Font_Entry;
 
 typedef struct {
     char               name[256];
-    const Gaiji_Entry* table_wide;
+    const Font_Entry* table_wide;
     int                table_wide_size;
-    const Gaiji_Entry* table_narrow;
+    const Font_Entry* table_narrow;
     int                table_narrow_size;
-} Gaiji_Table;
+} Font_Table;
 
 typedef struct {
-    Gaiji_Table* tables;
+    Font_Table* tables;
     int          table_count;
-} Gaiji_Context;
+} Font_Context;
 
 typedef enum {
-    GAIJI_WIDTH_WIDE,
-    GAIJI_WIDTH_NARROW,
-} Gaiji_Width;
+    FONT_WIDTH_WIDE,
+    FONT_WIDTH_NARROW,
+} Font_Width;
 
 /*
  * Functions
  */
 
-bool gaiji_context_init(Gaiji_Context* context, const char path[]);
-void gaiji_context_destroy(Gaiji_Context* context);
+bool font_context_init(Font_Context* context, const char path[]);
+void font_context_destroy(Font_Context* context);
 
-const Gaiji_Table* gaiji_table_select(const Gaiji_Context* context, const char name[]);
+const Font_Table* font_table_select(const Font_Context* context, const char name[]);
 
-void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* table, Gaiji_Width width);
-void gaiji_stub_decode(char output[], int size, const char input[]);
+void font_stub_encode(char output[], int size, int code, const Font_Table* table, Font_Width width);
+void font_stub_decode(char output[], int size, const char input[]);
 
-#endif /* GAIJI_H */
+#endif /* FONT_H */

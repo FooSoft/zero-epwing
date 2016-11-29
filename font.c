@@ -24,7 +24,7 @@
 #include "jansson/include/jansson.h"
 
 #include "util.h"
-#include "gaiji.h"
+#include "font.h"
 
 /*
  * Local functions
@@ -82,7 +82,7 @@ static void encode_sequence(char output[], int size, const char utf8[]) {
     strncat(output, "}", size);
 }
 
-static void parse_entry(Gaiji_Entry* entry, const json_t* entry_json) {
+static void parse_entry(Font_Entry* entry, const json_t* entry_json) {
     entry->code = json_integer_value(json_array_get(entry_json, 0));
     const char* utf8 = json_string_value(json_array_get(entry_json, 1));
     if (utf8 == NULL) {
@@ -94,20 +94,20 @@ static void parse_entry(Gaiji_Entry* entry, const json_t* entry_json) {
     }
 }
 
-static void parse_entries(Gaiji_Entry** entries, int* count, const json_t* entry_array_json) {
+static void parse_entries(Font_Entry** entries, int* count, const json_t* entry_array_json) {
     *count = json_array_size(entry_array_json);
     if (*count == 0) {
         *entries = NULL;
     }
     else {
-        *entries = malloc(sizeof(Gaiji_Entry) * *count);
+        *entries = malloc(sizeof(Font_Entry) * *count);
         for (int i = 0; i < *count; ++i) {
             parse_entry(*entries + i, json_array_get(entry_array_json, i));
         }
     }
 }
 
-static void parse_table(Gaiji_Table* table, const json_t* table_json) {
+static void parse_table(Font_Table* table, const json_t* table_json) {
     const char* name = json_string_value(json_object_get(table_json, "name"));
     if (name == NULL) {
         *table->name = 0;
@@ -118,25 +118,25 @@ static void parse_table(Gaiji_Table* table, const json_t* table_json) {
     }
 
     parse_entries(
-        (Gaiji_Entry**)&table->table_wide,
+        (Font_Entry**)&table->table_wide,
         &table->table_wide_size,
         json_object_get(table_json, "wide")
     );
 
     parse_entries(
-        (Gaiji_Entry**)&table->table_narrow,
+        (Font_Entry**)&table->table_narrow,
         &table->table_narrow_size,
         json_object_get(table_json, "narrow")
     );
 }
 
-static void parse_table_array(Gaiji_Context* context, const json_t* table_array_json) {
+static void parse_table_array(Font_Context* context, const json_t* table_array_json) {
     context->table_count = json_array_size(table_array_json);
     if (context->table_count == 0) {
         context->tables = NULL;
     }
     else {
-        context->tables = malloc(sizeof(Gaiji_Table) * context->table_count);
+        context->tables = malloc(sizeof(Font_Table) * context->table_count);
         for (int i = 0; i < context->table_count; ++i) {
             parse_table(context->tables + i, json_array_get(table_array_json, i));
         }
@@ -147,9 +147,9 @@ static void parse_table_array(Gaiji_Context* context, const json_t* table_array_
  * Exported functions
  */
 
-const Gaiji_Table* gaiji_table_select(const Gaiji_Context* context, const char name[]) {
+const Font_Table* font_table_select(const Font_Context* context, const char name[]) {
     for (int i = 0; i < context->table_count; ++i) {
-        const Gaiji_Table* table = context->tables + i;
+        const Font_Table* table = context->tables + i;
         if (strstr(name, table->name) != NULL) {
             return table;
         }
@@ -158,21 +158,21 @@ const Gaiji_Table* gaiji_table_select(const Gaiji_Context* context, const char n
     return NULL;
 }
 
-void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* table, Gaiji_Width width) {
+void font_stub_encode(char output[], int size, int code, const Font_Table* table, Font_Width width) {
     do {
         if (table == NULL) {
             break;
         }
 
-        const Gaiji_Entry* entries = NULL;
+        const Font_Entry* entries = NULL;
         int count = 0;
 
         switch (width) {
-            case GAIJI_WIDTH_WIDE:
+            case FONT_WIDTH_WIDE:
                 entries = table->table_wide;
                 count = table->table_wide_size;
                 break;
-            case GAIJI_WIDTH_NARROW:
+            case FONT_WIDTH_NARROW:
                 entries = table->table_narrow;
                 count = table->table_narrow_size;
                 break;
@@ -181,7 +181,7 @@ void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* tab
         assert(entries != NULL);
 
         for (int i = 0; i < count; ++i) {
-            const Gaiji_Entry* entry = entries + i;
+            const Font_Entry* entry = entries + i;
             if (entry->code == code) {
                 encode_sequence(output, size, entry->utf8);
                 return;
@@ -195,7 +195,7 @@ void gaiji_stub_encode(char output[], int size, int code, const Gaiji_Table* tab
     output[size - 1] = 0;
 }
 
-void gaiji_stub_decode(char output[], int size, const char input[]) {
+void font_stub_decode(char output[], int size, const char input[]) {
     const char* ptr_in = input;
     char* ptr_out = output;
     bool decode = false;
@@ -235,7 +235,7 @@ void gaiji_stub_decode(char output[], int size, const char input[]) {
     *ptr_out = 0;
 }
 
-bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
+bool font_context_init(Font_Context* context, const char path[]) {
     context->table_count = 0;
     context->tables = NULL;
 
@@ -254,11 +254,11 @@ bool gaiji_context_init(Gaiji_Context* context, const char path[]) {
     return true;
 }
 
-void gaiji_context_destroy(Gaiji_Context* context) {
+void font_context_destroy(Font_Context* context) {
     for (int i = 0; i < context->table_count; ++i) {
-        Gaiji_Table* table = context->tables + i;
-        free((Gaiji_Entry*)table->table_wide);
-        free((Gaiji_Entry*)table->table_narrow);
+        Font_Table* table = context->tables + i;
+        free((Font_Entry*)table->table_wide);
+        free((Font_Entry*)table->table_narrow);
     }
 
     free(context->tables);

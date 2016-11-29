@@ -22,7 +22,7 @@
 
 #include "util.h"
 #include "book.h"
-#include "gaiji.h"
+#include "font.h"
 
 /*
  * Local types
@@ -99,8 +99,8 @@ int main(int argc, char *argv[]) {
     Options options = { };
     argp_parse(&argp, argc, argv, 0, 0, &options);
 
-    Gaiji_Context context;
-    if (!gaiji_context_init(&context, *options.font_path == 0 ? NULL : options.font_path)) {
+    Font_Context context;
+    if (!font_context_init(&context, *options.font_path == 0 ? NULL : options.font_path)) {
         return 1;
     }
 
@@ -113,6 +113,6 @@ int main(int argc, char *argv[]) {
 
     book_free(&book);
 
-    gaiji_context_destroy(&context);
+    font_context_destroy(&context);
     return success ? 0 : 1;
 }

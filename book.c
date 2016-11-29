@@ -47,7 +47,7 @@ static char* book_read(
     EB_Hookset*        hookset,
     const EB_Position* position,
     Book_Mode          mode,
-    const Gaiji_Table* table
+    const Font_Table*  table
 ) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
@@ -93,7 +93,7 @@ static char* book_read(
         return NULL;
     }
 
-    gaiji_stub_decode(result, strlen(result) + 1, result);
+    font_stub_decode(result, strlen(result) + 1, result);
     return result;
 }
 
@@ -139,7 +139,7 @@ static void book_encode(Book* book, json_t* book_json) {
     json_decref(subbook_json_array);
 }
 
-static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, const Gaiji_Table* table) {
+static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, const Font_Table* table) {
     if (subbook->entry_capacity == 0) {
         subbook->entry_capacity = 16384;
         subbook->entries = malloc(subbook->entry_capacity * sizeof(Book_Entry));
@@ -169,12 +169,12 @@ static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_H
     while (hit_count > 0);
 }
 
-static void subbook_export(Book_Subbook* subbook, const Gaiji_Context* context, EB_Book* eb_book, EB_Hookset* eb_hookset) {
-    const Gaiji_Table* table = NULL;
+static void subbook_export(Book_Subbook* subbook, const Font_Context* context, EB_Book* eb_book, EB_Hookset* eb_hookset) {
+    const Font_Table* table = NULL;
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
-        table = gaiji_table_select(context, subbook->title);
+        table = font_table_select(context, subbook->title);
     }
 
     if (eb_have_copyright(eb_book)) {
@@ -236,7 +236,7 @@ bool book_dump(Book* book, bool pretty_print, FILE* fp) {
 }
 
 
-bool book_export(Book* book, const Gaiji_Context* context, const char path[], bool markup) {
+bool book_export(Book* book, const Font_Context* context, const char path[], bool markup) {
     EB_Error_Code error;
     if ((error = eb_initialize_library()) != EB_SUCCESS) {
         fprintf(stderr, "Failed to initialize library: %s\n", eb_error_message(error));
