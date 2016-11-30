@@ -91,14 +91,22 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
     return result;
 }
 
-static void entry_encode(Book_Entry* entry, json_t* entry_json) {
-    json_object_set_new(entry_json, "heading", json_string(entry->heading));
-    /* json_object_set_new(entry_json, "headingPage", json_integer(entry->heading_page)); */
-    /* json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading_offset)); */
+static Book_Content book_read_content(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table) {
+    Book_Content content = {};
+    content.text = book_read(book, hookset, position, mode, table);
+    content.page = position->page;
+    content.offset = position->offset;
+    return content;
+}
 
-    json_object_set_new(entry_json, "text", json_string(entry->text));
-    /* json_object_set_new(entry_json, "textPage", json_integer(entry->text_page)); */
-    /* json_object_set_new(entry_json, "textOffset", json_integer(entry->text_offset)); */
+static void entry_encode(Book_Entry* entry, json_t* entry_json) {
+    json_object_set_new(entry_json, "heading", json_string(entry->heading.text));
+    /* json_object_set_new(entry_json, "headingPage", json_integer(entry->heading.page)); */
+    /* json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading.offset)); */
+
+    json_object_set_new(entry_json, "text", json_string(entry->text.text));
+    /* json_object_set_new(entry_json, "textPage", json_integer(entry->text.page)); */
+    /* json_object_set_new(entry_json, "textOffset", json_integer(entry->text.offset)); */
 }
 
 static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
@@ -106,8 +114,10 @@ static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
     }
 
-    if (subbook->copyright != NULL) {
-        json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright));
+    if (subbook->copyright.text != NULL) {
+        json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright.text));
+        /* json_object_set_new(subbook_json, "copyrightPage", json_integer(subbook->copyright.page)); */
+        /* json_object_set_new(subbook_json, "copyrightOffset", json_integer(subbook->copyright.offset)); */
     }
 
     json_t* entry_json_array = json_array();
@@ -157,14 +167,8 @@ static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_H
             }
 
             Book_Entry* entry = subbook->entries + subbook->entry_count++;
-
-            entry->heading = book_read(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, table);
-            entry->heading_page = hit->heading.page;
-            entry->heading_offset = hit->heading.offset;
-
-            entry->text = book_read(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, table);
-            entry->text_page = hit->text.page;
-            entry->text_offset = hit->text.offset;
+            entry->heading = book_read_content(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, table);
+            entry->text = book_read_content(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, table);
         }
     }
     while (hit_count > 0);
@@ -181,9 +185,7 @@ static void subbook_export(Book_Subbook* subbook, const Font_Context* context, E
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = book_read(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, table);
-            subbook->copyright_page = position.page;
-            subbook->copyright_offset = position.offset;
+            subbook->copyright = book_read_content(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, table);
         }
     }
 
@@ -212,12 +214,12 @@ void book_free(Book* book) {
     for (int i = 0; i < book->subbook_count; ++i) {
         Book_Subbook* subbook = book->subbooks + i;
         free(subbook->title);
-        free(subbook->copyright);
+        free(subbook->copyright.text);
 
         for (int j = 0; j < subbook->entry_count; ++j) {
             Book_Entry* entry = subbook->entries + j;
-            free(entry->heading);
-            free(entry->text);
+            free(entry->heading.text);
+            free(entry->text.text);
         }
 
         free(subbook->entries);
