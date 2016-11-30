@@ -191,8 +191,8 @@ void font_stub_encode(char output[], int size, int code, const Font_Table* table
     }
     while (0);
 
-    strncpy(output, "<?>", size);
-    output[size - 1] = 0;
+    /* unable to decode, use output the unknown character symbol */
+    encode_sequence(output, size, "\xef\xbf\xbd");
 }
 
 void font_stub_decode(char output[], int size, const char input[]) {
