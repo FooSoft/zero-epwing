@@ -30,12 +30,18 @@
 
 typedef struct {
     char* heading;
+    int   heading_page;
+    int   heading_offset;
     char* text;
+    int   text_page;
+    int   text_offset;
 } Book_Entry;
 
 typedef struct {
     char*       title;
     char*       copyright;
+    int         copyright_page;
+    int         copyright_offset;
     Book_Entry* entries;
     int         entry_count;
     int         entry_alloc;

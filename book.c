@@ -42,7 +42,7 @@ typedef enum {
  * Local functions
  */
 
-static char* book_read( EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table) {
+static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -93,7 +93,12 @@ static char* book_read( EB_Book* book, EB_Hookset* hookset, const EB_Position* p
 
 static void entry_encode(Book_Entry* entry, json_t* entry_json) {
     json_object_set_new(entry_json, "heading", json_string(entry->heading));
+    /* json_object_set_new(entry_json, "headingPage", json_integer(entry->heading_page)); */
+    /* json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading_offset)); */
+
     json_object_set_new(entry_json, "text", json_string(entry->text));
+    /* json_object_set_new(entry_json, "textPage", json_integer(entry->text_page)); */
+    /* json_object_set_new(entry_json, "textOffset", json_integer(entry->text_offset)); */
 }
 
 static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
@@ -152,8 +157,14 @@ static void subbook_entries_export(Book_Subbook* subbook, EB_Book* eb_book, EB_H
             }
 
             Book_Entry* entry = subbook->entries + subbook->entry_count++;
+
             entry->heading = book_read(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, table);
+            entry->heading_page = hit->heading.page;
+            entry->heading_offset = hit->heading.offset;
+
             entry->text = book_read(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, table);
+            entry->text_page = hit->text.page;
+            entry->text_offset = hit->text.offset;
         }
     }
     while (hit_count > 0);
@@ -171,6 +182,8 @@ static void subbook_export(Book_Subbook* subbook, const Font_Context* context, E
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
             subbook->copyright = book_read(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, table);
+            subbook->copyright_page = position.page;
+            subbook->copyright_offset = position.offset;
         }
     }
 
