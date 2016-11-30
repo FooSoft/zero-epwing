@@ -32,19 +32,19 @@ typedef struct {
     char* text;
     int   page;
     int   offset;
-} Book_Content;
+} Book_Block;
 
 typedef struct {
-    Book_Content heading;
-    Book_Content text;
+    Book_Block heading;
+    Book_Block text;
 } Book_Entry;
 
 typedef struct {
-    char*        title;
-    Book_Content copyright;
-    Book_Entry*  entries;
-    int          entry_count;
-    int          entry_alloc;
+    char*       title;
+    Book_Block  copyright;
+    Book_Entry* entries;
+    int         entry_count;
+    int         entry_alloc;
 } Book_Subbook;
 
 typedef struct {
@@ -61,6 +61,6 @@ typedef struct {
 void book_init(Book* book);
 void book_free(Book* book);
 bool book_export(Book* book, const Font_Context* context, const char path[], bool markup);
-bool book_dump(Book* book, bool pretty_print, FILE* fp);
+bool book_dump(FILE* fp, const Book* book, bool pretty_print);
 
 #endif /* BOOK_H */

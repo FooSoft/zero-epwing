@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 
     const bool success =
         book_export(&book, &context, options.dict_path, options.markup) &&
-        book_dump(&book, options.pretty_print, stdout);
+        book_dump(stdout, &book, options.pretty_print);
 
     book_free(&book);
 

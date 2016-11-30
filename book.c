@@ -91,15 +91,15 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
     return result;
 }
 
-static Book_Content book_read_content(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table) {
-    Book_Content content = {};
-    content.text = book_read(book, hookset, position, mode, table);
-    content.page = position->page;
-    content.offset = position->offset;
-    return content;
+static Book_Block book_read_content(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table) {
+    Book_Block block = {};
+    block.text = book_read(book, hookset, position, mode, table);
+    block.page = position->page;
+    block.offset = position->offset;
+    return block;
 }
 
-static void entry_encode(Book_Entry* entry, json_t* entry_json) {
+static void entry_encode(json_t* entry_json, Book_Entry* entry) {
     json_object_set_new(entry_json, "heading", json_string(entry->heading.text));
     /* json_object_set_new(entry_json, "headingPage", json_integer(entry->heading.page)); */
     /* json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading.offset)); */
@@ -109,7 +109,7 @@ static void entry_encode(Book_Entry* entry, json_t* entry_json) {
     /* json_object_set_new(entry_json, "textOffset", json_integer(entry->text.offset)); */
 }
 
-static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
+static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook) {
     if (subbook->title != NULL) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
     }
@@ -123,21 +123,21 @@ static void subbok_encode(Book_Subbook* subbook, json_t* subbook_json) {
     json_t* entry_json_array = json_array();
     for (int i = 0; i < subbook->entry_count; ++i) {
         json_t* entry_json = json_object();
-        entry_encode(subbook->entries + i, entry_json);
+        entry_encode(entry_json, subbook->entries + i);
         json_array_append_new(entry_json_array, entry_json);
     }
 
     json_object_set_new(subbook_json, "entries", entry_json_array);
 }
 
-static void book_encode(Book* book, json_t* book_json) {
+static void book_encode(json_t* book_json, const Book* book) {
     json_object_set_new(book_json, "charCode", json_string(book->char_code));
     json_object_set_new(book_json, "discCode", json_string(book->disc_code));
 
     json_t* subbook_json_array = json_array();
     for (int i = 0; i < book->subbook_count; ++i) {
         json_t* subbook_json = json_object();
-        subbok_encode(book->subbooks + i, subbook_json);
+        subbook_encode(subbook_json, book->subbooks + i);
         json_array_append_new(subbook_json_array, subbook_json);
     }
 
@@ -228,9 +228,9 @@ void book_free(Book* book) {
     memset(book, 0, sizeof(Book));
 }
 
-bool book_dump(Book* book, bool pretty_print, FILE* fp) {
+bool book_dump(FILE* fp, const Book* book, bool pretty_print) {
     json_t* book_json = json_object();
-    book_encode(book, book_json);
+    book_encode(book_json, book);
 
     char* output = json_dumps(book_json, pretty_print ? JSON_INDENT(4) : JSON_COMPACT);
     if (output != NULL) {
