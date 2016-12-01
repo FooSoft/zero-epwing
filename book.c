@@ -38,6 +38,12 @@ typedef enum {
     BOOK_MODE_HEADING,
 } Book_Mode;
 
+typedef struct {
+    int* offsets;
+    int  offset_count;
+    int  offset_alloc;
+} Page;
+
 /*
  * Helper functions
  */
@@ -99,18 +105,88 @@ static Book_Block book_read_content(EB_Book* book, EB_Hookset* hookset, const EB
     return block;
 }
 
+static void subbook_undupe(Book_Subbook* subbook) {
+    int page_count = 0;
+    for (int i = 0; i < subbook->entry_count; ++i) {
+        const int page_index = subbook->entries[i].text.page + 1;
+        if (page_count < page_index) {
+            page_count = page_index;
+        }
+    }
+
+    if (page_count == 0) {
+        return;
+    }
+
+    Page* pages = calloc(page_count, sizeof(Page));
+
+    for (int i = 0; i < subbook->entry_count; ++i) {
+        Book_Entry* entry = subbook->entries + i;
+        Page* page = pages + entry->text.page;
+
+        bool found = false;
+        for (int j = 0; j < page->offset_count; ++j) {
+            if (entry->text.offset == page->offsets[j]){
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            if (i + 1 < subbook->entry_count) {
+                subbook->entries[i] = subbook->entries[subbook->entry_count - 1];
+            }
+
+            --subbook->entry_count;
+            --i;
+
+            continue;
+        }
+
+        if (page->offset_count + 1 >= page->offset_alloc) {
+            if (page->offset_alloc == 0) {
+                page->offset_alloc = 32;
+                page->offsets = malloc(page->offset_alloc * sizeof(int));
+            }
+            else {
+                const int offset_alloc_new = page->offset_alloc * 2;
+                page->offsets = realloc(page->offsets, offset_alloc_new * sizeof(int));
+                page->offset_alloc = offset_alloc_new;
+            }
+        }
+
+        page->offsets[page->offset_count++] = entry->text.offset;
+    }
+
+    for (int i = 0; i < page_count; ++i) {
+        free(pages[i].offsets);
+    }
+
+    free(pages);
+}
+
+static void book_undupe(Book* book) {
+    for (int i = 0; i < book->subbook_count; ++i) {
+        subbook_undupe(book->subbooks + i);
+    }
+}
+
 /*
  * Encoding to JSON
  */
 
-static void entry_encode(json_t* entry_json, Book_Entry* entry) {
-    json_object_set_new(entry_json, "heading", json_string(entry->heading.text));
+static void entry_encode(json_t* entry_json, const Book_Entry* entry) {
     /* json_object_set_new(entry_json, "headingPage", json_integer(entry->heading.page)); */
     /* json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading.offset)); */
+    if (entry->heading.text != NULL) {
+        json_object_set_new(entry_json, "heading", json_string(entry->heading.text));
+    }
 
-    json_object_set_new(entry_json, "text", json_string(entry->text.text));
     /* json_object_set_new(entry_json, "textPage", json_integer(entry->text.page)); */
     /* json_object_set_new(entry_json, "textOffset", json_integer(entry->text.offset)); */
+    if (entry->text.text != NULL) {
+        json_object_set_new(entry_json, "text", json_string(entry->text.text));
+    }
 }
 
 static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook) {
@@ -118,10 +194,10 @@ static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
     }
 
+    /* json_object_set_new(subbook_json, "copyrightPage", json_integer(subbook->copyright.page)); */
+    /* json_object_set_new(subbook_json, "copyrightOffset", json_integer(subbook->copyright.offset)); */
     if (subbook->copyright.text != NULL) {
         json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright.text));
-        /* json_object_set_new(subbook_json, "copyrightPage", json_integer(subbook->copyright.page)); */
-        /* json_object_set_new(subbook_json, "copyrightOffset", json_integer(subbook->copyright.offset)); */
     }
 
     json_t* entry_json_array = json_array();
@@ -335,5 +411,6 @@ bool book_import(Book* book, const Font_Context* context, const char path[], boo
     eb_finalize_hookset(&eb_hookset);
     eb_finalize_library();
 
+    book_undupe(book);
     return true;
 }
