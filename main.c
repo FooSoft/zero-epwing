@@ -108,8 +108,8 @@ int main(int argc, char *argv[]) {
     book_init(&book);
 
     const bool success =
-        book_export(&book, &context, options.dict_path, options.markup) &&
-        book_dump(stdout, &book, options.pretty_print);
+        book_import(&book, &context, options.dict_path, options.markup) &&
+        book_export(stdout, &book, options.pretty_print);
 
     book_free(&book);
 

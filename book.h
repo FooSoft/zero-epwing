@@ -60,7 +60,7 @@ typedef struct {
 
 void book_init(Book* book);
 void book_free(Book* book);
-bool book_export(Book* book, const Font_Context* context, const char path[], bool markup);
-bool book_dump(FILE* fp, const Book* book, bool pretty_print);
+bool book_import(Book* book, const Font_Context* context, const char path[], bool markup);
+bool book_export(FILE* fp, const Book* book, bool pretty_print);
 
 #endif /* BOOK_H */
