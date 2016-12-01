@@ -38,16 +38,16 @@ typedef struct {
 } Font_Entry;
 
 typedef struct {
-    char               name[256];
+    char              name[256];
     const Font_Entry* table_wide;
-    int                table_wide_size;
+    int               table_wide_size;
     const Font_Entry* table_narrow;
-    int                table_narrow_size;
+    int               table_narrow_size;
 } Font_Table;
 
 typedef struct {
     Font_Table* tables;
-    int          table_count;
+    int         table_count;
 } Font_Context;
 
 typedef enum {

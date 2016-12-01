@@ -175,49 +175,58 @@ static void book_undupe(Book* book) {
  * Encoding to JSON
  */
 
-static void entry_encode(json_t* entry_json, const Book_Entry* entry) {
-    /* json_object_set_new(entry_json, "headingPage", json_integer(entry->heading.page)); */
-    /* json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading.offset)); */
+static void entry_encode(json_t* entry_json, const Book_Entry* entry, int flags) {
     if (entry->heading.text != NULL) {
         json_object_set_new(entry_json, "heading", json_string(entry->heading.text));
     }
 
-    /* json_object_set_new(entry_json, "textPage", json_integer(entry->text.page)); */
-    /* json_object_set_new(entry_json, "textOffset", json_integer(entry->text.offset)); */
+    if (flags & FLAG_POSITIONS) {
+        json_object_set_new(entry_json, "headingPage", json_integer(entry->heading.page));
+        json_object_set_new(entry_json, "headingOffset", json_integer(entry->heading.offset));
+    }
+
     if (entry->text.text != NULL) {
         json_object_set_new(entry_json, "text", json_string(entry->text.text));
     }
+
+    if (flags & FLAG_POSITIONS) {
+        json_object_set_new(entry_json, "textPage", json_integer(entry->text.page));
+        json_object_set_new(entry_json, "textOffset", json_integer(entry->text.offset));
+    }
 }
 
-static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook) {
+static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook, int flags) {
     if (subbook->title != NULL) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
     }
 
-    /* json_object_set_new(subbook_json, "copyrightPage", json_integer(subbook->copyright.page)); */
-    /* json_object_set_new(subbook_json, "copyrightOffset", json_integer(subbook->copyright.offset)); */
     if (subbook->copyright.text != NULL) {
         json_object_set_new(subbook_json, "copyright", json_string(subbook->copyright.text));
+    }
+
+    if (flags & FLAG_POSITIONS) {
+        json_object_set_new(subbook_json, "copyrightPage", json_integer(subbook->copyright.page));
+        json_object_set_new(subbook_json, "copyrightOffset", json_integer(subbook->copyright.offset));
     }
 
     json_t* entry_json_array = json_array();
     for (int i = 0; i < subbook->entry_count; ++i) {
         json_t* entry_json = json_object();
-        entry_encode(entry_json, subbook->entries + i);
+        entry_encode(entry_json, subbook->entries + i, flags);
         json_array_append_new(entry_json_array, entry_json);
     }
 
     json_object_set_new(subbook_json, "entries", entry_json_array);
 }
 
-static void book_encode(json_t* book_json, const Book* book) {
+static void book_encode(json_t* book_json, const Book* book, int flags) {
     json_object_set_new(book_json, "charCode", json_string(book->char_code));
     json_object_set_new(book_json, "discCode", json_string(book->disc_code));
 
     json_t* subbook_json_array = json_array();
     for (int i = 0; i < book->subbook_count; ++i) {
         json_t* subbook_json = json_object();
-        subbook_encode(subbook_json, book->subbooks + i);
+        subbook_encode(subbook_json, book->subbooks + i, flags);
         json_array_append_new(subbook_json_array, subbook_json);
     }
 
@@ -312,11 +321,11 @@ void book_free(Book* book) {
     memset(book, 0, sizeof(Book));
 }
 
-bool book_export(FILE* fp, const Book* book, bool pretty_print) {
+bool book_export(FILE* fp, const Book* book, int flags) {
     json_t* book_json = json_object();
-    book_encode(book_json, book);
+    book_encode(book_json, book, flags);
 
-    char* output = json_dumps(book_json, pretty_print ? JSON_INDENT(4) : JSON_COMPACT);
+    char* output = json_dumps(book_json, flags & FLAG_PRETTY_PRINT ? JSON_INDENT(4) : JSON_COMPACT);
     if (output != NULL) {
         fputs(output, fp);
     }
@@ -327,7 +336,7 @@ bool book_export(FILE* fp, const Book* book, bool pretty_print) {
 }
 
 
-bool book_import(Book* book, const Font_Context* context, const char path[], bool markup) {
+bool book_import(Book* book, const Font_Context* context, const char path[], int flags) {
     EB_Error_Code error;
     if ((error = eb_initialize_library()) != EB_SUCCESS) {
         fprintf(stderr, "Failed to initialize library: %s\n", eb_error_message(error));
@@ -339,7 +348,7 @@ bool book_import(Book* book, const Font_Context* context, const char path[], boo
 
     EB_Hookset eb_hookset;
     eb_initialize_hookset(&eb_hookset);
-    hooks_install(&eb_hookset, markup);
+    hooks_install(&eb_hookset, flags);
 
     if ((error = eb_bind(&eb_book, path)) != EB_SUCCESS) {
         fprintf(stderr, "Failed to bind book: %s\n", eb_error_message(error));

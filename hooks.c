@@ -202,12 +202,12 @@ static const EB_Hook s_hooks_basic[] = {
  * Exported functions
  */
 
-void hooks_install(EB_Hookset* hookset, bool markup) {
+void hooks_install(EB_Hookset* hookset, int flags) {
     for (unsigned i = 0; i < ARRSIZE(s_hooks_basic); ++i) {
         eb_set_hook(hookset, s_hooks_basic + i);
     }
 
-    if (markup) {
+    if (flags & FLAG_MARKUP) {
         for (unsigned i = 0; i < ARRSIZE(s_hooks_markup); ++i) {
             eb_set_hook(hookset, s_hooks_markup + i);
         }

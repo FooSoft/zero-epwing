@@ -31,8 +31,7 @@
 typedef struct {
     char dict_path[256];
     char font_path[256];
-    bool pretty_print;
-    bool markup;
+    int  flags;
 } Options;
 
 /*
@@ -55,11 +54,14 @@ static error_t argp_parser(int key, char* arg, struct argp_state* state) {
                 options->font_path[ARRSIZE(options->font_path) - 1] = 0;
             }
             break;
-        case 'm':
-            options->markup = true;
-            break;
         case 'p':
-            options->pretty_print = true;
+            options->flags |= FLAG_PRETTY_PRINT;
+            break;
+        case 'm':
+            options->flags |= FLAG_MARKUP;
+            break;
+        case 's':
+            options->flags |= FLAG_POSITIONS;
             break;
         case ARGP_KEY_END:
             if (*options->dict_path == 0) {
@@ -79,10 +81,11 @@ static error_t argp_parser(int key, char* arg, struct argp_state* state) {
 
 int main(int argc, char *argv[]) {
     const struct argp_option argp_options[] = {
-        { "dict",         'd', "PATH", 0,                   "dictionary resource to process",          0 },
-        { "font",         'f', "PATH", OPTION_ARG_OPTIONAL, "definition file for font translation",    0 },
-        { "pretty-print", 'p', NULL,   OPTION_ARG_OPTIONAL, "pretty print JSON output",                0 },
-        { "markup",       'm', NULL,   OPTION_ARG_OPTIONAL, "markup JSON output with formatting tags", 0 },
+        { "dict",         'd', "PATH", 0,                   "dictionary resource to process",       0 },
+        { "font",         'f', "PATH", OPTION_ARG_OPTIONAL, "definition file for font translation", 0 },
+        { "pretty-print", 'p', NULL,   OPTION_ARG_OPTIONAL, "output pretty-printed JSON",           0 },
+        { "markup",       'm', NULL,   OPTION_ARG_OPTIONAL, "output formatting tags",               0 },
+        { "positions",    's', NULL,   OPTION_ARG_OPTIONAL, "output positional data",               0 },
         { }
     };
 
@@ -96,7 +99,7 @@ int main(int argc, char *argv[]) {
         NULL,
     };
 
-    Options options = { };
+    Options options = {};
     argp_parse(&argp, argc, argv, 0, 0, &options);
 
     Font_Context context;
@@ -108,8 +111,8 @@ int main(int argc, char *argv[]) {
     book_init(&book);
 
     const bool success =
-        book_import(&book, &context, options.dict_path, options.markup) &&
-        book_export(stdout, &book, options.pretty_print);
+        book_import(&book, &context, options.dict_path, options.flags) &&
+        book_export(stdout, &book, options.flags);
 
     book_free(&book);
 

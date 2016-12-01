@@ -25,4 +25,10 @@
 
 #define ARRSIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
+enum {
+    FLAG_PRETTY_PRINT = 1 << 0,
+    FLAG_MARKUP       = 1 << 1,
+    FLAG_POSITIONS    = 1 << 2,
+};
+
 #endif /* UTIL_H */
