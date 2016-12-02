@@ -17,6 +17,7 @@
  */
 
 #include <assert.h>
+#include <stdio.h>
 
 #include "hooks.h"
 #include "util.h"
@@ -90,7 +91,6 @@ HOOK_TAGGER(end_mono_graphic);        /* EB_HOOK_END_MONO_GRAPHIC */
 HOOK_TAGGER(end_mpeg);                /* EB_HOOK_END_MPEG */
 HOOK_TAGGER(end_narrow);              /* EB_HOOK_END_NARROW */
 HOOK_TAGGER(end_no_newline);          /* EB_HOOK_END_NO_NEWLINE */
-HOOK_TAGGER(end_reference);           /* EB_HOOK_END_REFERENCE */
 HOOK_TAGGER(end_subscript);           /* EB_HOOK_END_SUBSCRIPT */
 HOOK_TAGGER(end_superscript);         /* EB_HOOK_END_SUPERSCRIPT */
 HOOK_TAGGER(end_unicode);             /* EB_HOOK_END_UNICODE */
@@ -99,6 +99,27 @@ HOOK_TAGGER(graphic_reference);       /* EB_HOOK_GRAPHIC_REFERENCE */
 HOOK_TAGGER(newline);                 /* EB_HOOK_NEWLINE */
 HOOK_TAGGER(null);                    /* EB_HOOK_NULL */
 HOOK_TAGGER(set_indent);              /* EB_HOOK_SET_INDENT */
+
+static EB_Error_Code hook_end_reference( /* EB_HOOK_END_REFERENCE */
+    EB_Book*           book,
+    EB_Appendix*       appendix,
+    void*              container,
+    EB_Hook_Code       code,
+    int                argc,
+    const unsigned int argv[]
+) {
+    (void)appendix;
+    (void)container;
+    (void)code;
+
+    assert(argc >= 3);
+    char ref[256];
+    snprintf(ref, ARRSIZE(ref), "<end_reference page=%d offset=%d>", argv[1], argv[2]);
+    ref[ARRSIZE(ref) - 1] = 0;
+    eb_write_text_string(book, ref);
+
+    return 0;
+}
 
 static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     EB_Book*           book,
@@ -113,7 +134,7 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
 
     Hook_Params* params = (Hook_Params*)container;
 
-    assert(argc > 0);
+    assert(argc >= 1);
     char stub[MAX_STUB_BYTES];
     font_stub_encode(stub, ARRSIZE(stub), argv[0], params->table, FONT_WIDTH_NARROW, params->flags);
     eb_write_text_string(book, stub);

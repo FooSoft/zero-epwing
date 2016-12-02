@@ -192,6 +192,7 @@ void font_stub_encode(char output[], int size, int code, const Font_Table* table
 
     if (flags & FLAG_FONT_TAGS) {
         snprintf(output, size, "{?%.8x}", code);
+        output[size - 1] = 0;
     }
     else {
         encode_sequence(output, size, "\xef\xbf\xbd");
