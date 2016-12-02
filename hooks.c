@@ -19,7 +19,6 @@
 #include <assert.h>
 
 #include "hooks.h"
-#include "font.h"
 #include "util.h"
 
 #include "eb/eb/eb.h"
@@ -112,9 +111,11 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     (void)appendix;
     (void)code;
 
+    Hook_Params* params = (Hook_Params*)container;
+
     assert(argc > 0);
     char stub[MAX_STUB_BYTES];
-    font_stub_encode(stub, ARRSIZE(stub), argv[0], container, FONT_WIDTH_NARROW);
+    font_stub_encode(stub, ARRSIZE(stub), argv[0], params->table, FONT_WIDTH_NARROW, params->flags);
     eb_write_text_string(book, stub);
 
     return 0;
@@ -131,9 +132,11 @@ static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
     (void)appendix;
     (void)code;
 
+    Hook_Params* params = (Hook_Params*)container;
+
     assert(argc > 0);
     char stub[MAX_STUB_BYTES];
-    font_stub_encode(stub, ARRSIZE(stub), argv[0], container, FONT_WIDTH_WIDE);
+    font_stub_encode(stub, ARRSIZE(stub), argv[0], params->table, FONT_WIDTH_WIDE, params->flags);
     eb_write_text_string(book, stub);
 
     return 0;
@@ -207,7 +210,7 @@ void hooks_install(EB_Hookset* hookset, int flags) {
         eb_set_hook(hookset, s_hooks_basic + i);
     }
 
-    if (flags & FLAG_MARKUP) {
+    if (flags & FLAG_HOOK_MARKUP) {
         for (unsigned i = 0; i < ARRSIZE(s_hooks_markup); ++i) {
             eb_set_hook(hookset, s_hooks_markup + i);
         }

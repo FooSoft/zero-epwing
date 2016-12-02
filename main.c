@@ -58,7 +58,10 @@ static error_t argp_parser(int key, char* arg, struct argp_state* state) {
             options->flags |= FLAG_PRETTY_PRINT;
             break;
         case 'm':
-            options->flags |= FLAG_MARKUP;
+            options->flags |= FLAG_HOOK_MARKUP;
+            break;
+        case 't':
+            options->flags |= FLAG_FONT_TAGS;
             break;
         case 's':
             options->flags |= FLAG_POSITIONS;
@@ -86,6 +89,7 @@ int main(int argc, char *argv[]) {
         { "pretty-print", 'p', NULL,   OPTION_ARG_OPTIONAL, "output pretty-printed JSON",           0 },
         { "markup",       'm', NULL,   OPTION_ARG_OPTIONAL, "output formatting tags",               0 },
         { "positions",    's', NULL,   OPTION_ARG_OPTIONAL, "output positional data",               0 },
+        { "font-tags",    't', NULL,   OPTION_ARG_OPTIONAL, "output missing font data tags",        0 },
         { }
     };
 

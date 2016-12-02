@@ -19,10 +19,20 @@
 #ifndef HOOKS_H
 #define HOOKS_H
 
+#include "font.h"
 #include "eb/eb/eb.h"
 
 /*
- * Exported functions
+ * Types
+ */
+
+typedef struct {
+    const void* table;
+    int         flags;
+} Hook_Params;
+
+/*
+ * Functions
  */
 
 void hooks_install(EB_Hookset* hookset, int flags);

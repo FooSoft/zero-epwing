@@ -27,8 +27,9 @@
 
 enum {
     FLAG_PRETTY_PRINT = 1 << 0,
-    FLAG_MARKUP       = 1 << 1,
+    FLAG_HOOK_MARKUP  = 1 << 1,
     FLAG_POSITIONS    = 1 << 2,
+    FLAG_FONT_TAGS    = 1 << 3,
 };
 
 #endif /* UTIL_H */

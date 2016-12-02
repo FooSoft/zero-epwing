@@ -157,7 +157,7 @@ const Font_Table* font_table_select(const Font_Context* context, const char name
     return NULL;
 }
 
-void font_stub_encode(char output[], int size, int code, const Font_Table* table, Font_Width width) {
+void font_stub_encode(char output[], int size, int code, const Font_Table* table, Font_Width width, int flags) {
     do {
         if (table == NULL) {
             break;
@@ -190,8 +190,12 @@ void font_stub_encode(char output[], int size, int code, const Font_Table* table
     }
     while (0);
 
-    /* unable to decode, use output the unknown character symbol */
-    encode_sequence(output, size, "\xef\xbf\xbd");
+    if (flags & FLAG_FONT_TAGS) {
+        snprintf(output, size, "{?%.8x}", code);
+    }
+    else {
+        encode_sequence(output, size, "\xef\xbf\xbd");
+    }
 }
 
 void font_stub_decode(char output[], int size, const char input[]) {

@@ -64,7 +64,7 @@ void font_context_destroy(Font_Context* context);
 
 const Font_Table* font_table_select(const Font_Context* context, const char name[]);
 
-void font_stub_encode(char output[], int size, int code, const Font_Table* table, Font_Width width);
+void font_stub_encode(char output[], int size, int code, const Font_Table* table, Font_Width width, int flags);
 void font_stub_decode(char output[], int size, const char input[]);
 
 #endif /* FONT_H */
