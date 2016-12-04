@@ -16,53 +16,53 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-#include "argparse/argparse.h"
 #include "util.h"
 #include "book.h"
 #include "font.h"
 
 /*
- * Local types
- */
-
-typedef struct {
-    char dict_path[256];
-    char font_path[256];
-    int  flags;
-} Options;
-
-/*
  * Entry point
  */
 
-int main(int argc, const char *argv[]) {
+int main(int argc, char *argv[]) {
     char* dict_path = NULL;
     char* font_path = NULL;
     int flags = 0;
 
-    struct argparse_option options[] = {
-        OPT_HELP(),
-        OPT_STRING('d', "dict", &dict_path, "dictionary resource to process", NULL, 0, 0),
-        OPT_STRING('f', "font", &font_path, "font definition file for translation", NULL, 0, 0),
-        OPT_BOOLEAN('p', "pretty-print", &flags, "output pretty-printed JSON", NULL, 0, 0),
-        OPT_BOOLEAN('m', "markup", &flags, "output formatting tags", 0, 0, 0),
-        OPT_BOOLEAN('s', "positions", &flags, "output positional data", NULL, 0, 0),
-        OPT_BOOLEAN('t', "font-tags", &flags, "output missing font data tags", NULL, 0, 0),
-        OPT_END()
-    };
-
-    struct argparse argparse;
-
-    argparse_init(&argparse, options, NULL, 0);
-    argparse_parse(&argparse, argc, argv);
-
-    if (dict_path == NULL) {
-        argparse_usage(&argparse);
-        return 1;
+    char c = 0;
+    while ((c = getopt(argc, argv, "f:d:pmst")) != -1) {
+        switch (c) {
+            case 'f':
+                font_path = optarg;
+                break;
+            case 'p':
+                flags |= FLAG_PRETTY_PRINT;
+                break;
+            case 'm':
+                flags |= FLAG_HOOK_MARKUP;
+                break;
+            case 's':
+                flags |= FLAG_POSITIONS;
+                break;
+            case 't':
+                flags |= FLAG_FONT_TAGS;
+                break;
+            default:
+                abort();
+                break;
+        }
     }
+
+    if (optind == argc) {
+        fprintf(stderr, "dictionary must be provided provided\n");
+        abort();
+    }
+
+    dict_path = argv[optind];
 
     Font_Context context;
     if (!font_context_init(&context, font_path == 0 ? NULL : font_path)) {
