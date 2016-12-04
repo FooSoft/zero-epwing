@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <getopt.h>
 
 #include "util.h"
 #include "book.h"
@@ -29,12 +29,21 @@
  */
 
 int main(int argc, char *argv[]) {
+    const struct option options[] = {
+        { "font-table",   required_argument, NULL, 'f' },
+        { "pretty-print", no_argument,       NULL, 'p' },
+        { "markup",       no_argument,       NULL, 'm' },
+        { "positions",    no_argument,       NULL, 's' },
+        { "font-tags",    no_argument,       NULL, 't' },
+        { NULL,           0,                 NULL,  0  },
+    };
+
     char* dict_path = NULL;
     char* font_path = NULL;
     int flags = 0;
 
-    char c = 0;
-    while ((c = getopt(argc, argv, "f:d:pmst")) != -1) {
+    int c = 0;
+    while ((c = getopt_long(argc, argv, "f:d:pmst", options, NULL)) != -1) {
         switch (c) {
             case 'f':
                 font_path = optarg;
