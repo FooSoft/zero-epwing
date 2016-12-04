@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(zero-epwing)
 include_directories(eb)
-link_directories(eb/eb/.libs jansson/lib)
+link_directories(eb/eb/.libs jansson/lib argparse)
 add_executable(zero-epwing main.c book.c font.c convert.c hooks.c)
-target_link_libraries(zero-epwing libeb.a libz.a libjansson.a)
+target_link_libraries(zero-epwing libm.a libeb.a libm.a libz.a libjansson.a libargparse.a m)

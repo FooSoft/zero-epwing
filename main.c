@@ -18,8 +18,8 @@
 
 #include <string.h>
 #include <stdbool.h>
-#include <argp.h>
 
+#include "argparse/argparse.h"
 #include "util.h"
 #include "book.h"
 #include "font.h"
@@ -35,79 +35,37 @@ typedef struct {
 } Options;
 
 /*
- * Local functions
- */
-
-static error_t argp_parser(int key, char* arg, struct argp_state* state) {
-    Options* options = (Options*)state->input;
-
-    switch (key) {
-        case 'd':
-            if (arg != NULL) {
-                strncpy(options->dict_path, arg, ARRSIZE(options->dict_path));
-                options->dict_path[ARRSIZE(options->dict_path) - 1] = 0;
-            }
-            break;
-        case 'f':
-            if (arg != NULL) {
-                strncpy(options->font_path, arg, ARRSIZE(options->font_path));
-                options->font_path[ARRSIZE(options->font_path) - 1] = 0;
-            }
-            break;
-        case 'p':
-            options->flags |= FLAG_PRETTY_PRINT;
-            break;
-        case 'm':
-            options->flags |= FLAG_HOOK_MARKUP;
-            break;
-        case 't':
-            options->flags |= FLAG_FONT_TAGS;
-            break;
-        case 's':
-            options->flags |= FLAG_POSITIONS;
-            break;
-        case ARGP_KEY_END:
-            if (*options->dict_path == 0) {
-                argp_usage(state);
-            }
-            break;
-        default:
-            return ARGP_ERR_UNKNOWN;
-    }
-
-    return 0;
-}
-
-/*
  * Entry point
  */
 
-int main(int argc, char *argv[]) {
-    const struct argp_option argp_options[] = {
-        { "dict",         'd', "PATH", 0,                   "dictionary resource to process",       0 },
-        { "font",         'f', "PATH", OPTION_ARG_OPTIONAL, "definition file for font translation", 0 },
-        { "pretty-print", 'p', NULL,   OPTION_ARG_OPTIONAL, "output pretty-printed JSON",           0 },
-        { "markup",       'm', NULL,   OPTION_ARG_OPTIONAL, "output formatting tags",               0 },
-        { "positions",    's', NULL,   OPTION_ARG_OPTIONAL, "output positional data",               0 },
-        { "font-tags",    't', NULL,   OPTION_ARG_OPTIONAL, "output missing font data tags",        0 },
-        { }
+int main(int argc, const char *argv[]) {
+    char* dict_path = NULL;
+    char* font_path = NULL;
+    int flags = 0;
+
+    struct argparse_option options[] = {
+        OPT_HELP(),
+        OPT_STRING('d', "dict", &dict_path, "dictionary resource to process", NULL, 0, 0),
+        OPT_STRING('f', "font", &font_path, "font definition file for translation", NULL, 0, 0),
+        OPT_BOOLEAN('p', "pretty-print", &flags, "output pretty-printed JSON", NULL, 0, 0),
+        OPT_BOOLEAN('m', "markup", &flags, "output formatting tags", 0, 0, 0),
+        OPT_BOOLEAN('s', "positions", &flags, "output positional data", NULL, 0, 0),
+        OPT_BOOLEAN('t', "font-tags", &flags, "output missing font data tags", NULL, 0, 0),
+        OPT_END()
     };
 
-    const struct argp argp = {
-        argp_options,
-        argp_parser,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-    };
+    struct argparse argparse;
 
-    Options options = {};
-    argp_parse(&argp, argc, argv, 0, 0, &options);
+    argparse_init(&argparse, options, NULL, 0);
+    argparse_parse(&argparse, argc, argv);
+
+    if (dict_path == NULL) {
+        argparse_usage(&argparse);
+        return 1;
+    }
 
     Font_Context context;
-    if (!font_context_init(&context, *options.font_path == 0 ? NULL : options.font_path)) {
+    if (!font_context_init(&context, font_path == 0 ? NULL : font_path)) {
         return 1;
     }
 
@@ -115,8 +73,8 @@ int main(int argc, char *argv[]) {
     book_init(&book);
 
     const bool success =
-        book_import(&book, &context, options.dict_path, options.flags) &&
-        book_export(stdout, &book, options.flags);
+        book_import(&book, &context, dict_path, flags) &&
+        book_export(stdout, &book, flags);
 
     book_free(&book);
 
