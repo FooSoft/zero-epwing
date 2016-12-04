@@ -52,14 +52,13 @@ int main(int argc, char *argv[]) {
                 flags |= FLAG_FONT_TAGS;
                 break;
             default:
-                abort();
-                break;
+                return 1;
         }
     }
 
     if (optind == argc) {
-        fprintf(stderr, "dictionary must be provided provided\n");
-        abort();
+        fprintf(stderr, "%s: dictionary path must be provided provided\n", argv[0]);
+        return 1;
     }
 
     dict_path = argv[optind];
