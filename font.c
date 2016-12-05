@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "jansson/include/jansson.h"
 
@@ -50,7 +49,7 @@ static char nibble_to_ascii(int n) {
     return n <= 0x0f ? hex[n] : 0;
 }
 
-static bool is_ascii_nibble(char c) {
+static int is_ascii_nibble(char c) {
     return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
 }
 
@@ -202,11 +201,11 @@ void font_stub_encode(char output[], int size, int code, const Font_Table* table
 void font_stub_decode(char output[], int size, const char input[]) {
     const char* ptr_in = input;
     char* ptr_out = output;
-    bool decode = false;
+    int decode = 0;
 
     while (*ptr_in != 0 && ptr_out - output < size - 1) {
         if (strncmp(ptr_in, "{#", 2) == 0) {
-            decode = true;
+            decode = 1;
             ptr_in += 2;
         }
 
@@ -222,7 +221,7 @@ void font_stub_decode(char output[], int size, const char input[]) {
             }
 
             if (high_ascii == '}') {
-                decode = false;
+                decode = 0;
                 --ptr_in;
             }
             else {
@@ -239,23 +238,23 @@ void font_stub_decode(char output[], int size, const char input[]) {
     *ptr_out = 0;
 }
 
-bool font_context_init(Font_Context* context, const char path[]) {
+int font_context_init(Font_Context* context, const char path[]) {
     context->table_count = 0;
     context->tables = NULL;
 
     if (path == NULL) {
-        return true;
+        return 1;
     }
 
     json_t* table_array_json = json_load_file(path, 0, NULL);
     if (table_array_json == NULL) {
         fprintf(stderr, "Failed to load font file %s\n", path);
-        return false;
+        return 0;
     }
 
     parse_table_array(context, table_array_json);
     json_decref(table_array_json);
-    return true;
+    return 1;
 }
 
 void font_context_destroy(Font_Context* context) {

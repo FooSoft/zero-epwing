@@ -20,7 +20,6 @@
 #define BOOK_H
 
 #include <stdio.h>
-#include <stdbool.h>
 
 #include "font.h"
 
@@ -60,7 +59,7 @@ typedef struct {
 
 void book_init(Book* book);
 void book_free(Book* book);
-bool book_import(Book* book, const Font_Context* context, const char path[], int flags);
-bool book_export(FILE* fp, const Book* book, int flags);
+int book_import(Book* book, const Font_Context* context, const char path[], int flags);
+int book_export(FILE* fp, const Book* book, int flags);
 
 #endif /* BOOK_H */

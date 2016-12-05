@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <getopt.h>
 
@@ -80,7 +79,7 @@ int main(int argc, char *argv[]) {
     Book book;
     book_init(&book);
 
-    const bool success =
+    const int success =
         book_import(&book, &context, dict_path, flags) &&
         book_export(stdout, &book, flags);
 

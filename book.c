@@ -128,10 +128,10 @@ static void subbook_undupe(Book_Subbook* subbook) {
         Book_Entry* entry = subbook->entries + i;
         Page* page = pages + entry->text.page;
 
-        bool found = false;
+        int found = 0;
         for (int j = 0; j < page->offset_count; ++j) {
             if (entry->text.offset == page->offsets[j]){
-                found = true;
+                found = 1;
                 break;
             }
         }
@@ -325,7 +325,7 @@ void book_free(Book* book) {
     memset(book, 0, sizeof(Book));
 }
 
-bool book_export(FILE* fp, const Book* book, int flags) {
+int book_export(FILE* fp, const Book* book, int flags) {
     json_t* book_json = json_object();
     book_encode(book_json, book, flags);
 
@@ -340,11 +340,11 @@ bool book_export(FILE* fp, const Book* book, int flags) {
 }
 
 
-bool book_import(Book* book, const Font_Context* context, const char path[], int flags) {
+int book_import(Book* book, const Font_Context* context, const char path[], int flags) {
     EB_Error_Code error;
     if ((error = eb_initialize_library()) != EB_SUCCESS) {
         fprintf(stderr, "Failed to initialize library: %s\n", eb_error_message(error));
-        return false;
+        return 0;
     }
 
     EB_Book eb_book;
@@ -359,7 +359,7 @@ bool book_import(Book* book, const Font_Context* context, const char path[], int
         eb_finalize_book(&eb_book);
         eb_finalize_hookset(&eb_hookset);
         eb_finalize_library();
-        return false;
+        return 0;
     }
 
     EB_Character_Code char_code;
@@ -425,5 +425,5 @@ bool book_import(Book* book, const Font_Context* context, const char path[], int
     eb_finalize_library();
 
     book_undupe(book);
-    return true;
+    return 1;
 }

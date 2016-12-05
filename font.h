@@ -19,8 +19,6 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include <stdbool.h>
-
 /*
  * Constants
  */
@@ -59,7 +57,7 @@ typedef enum {
  * Functions
  */
 
-bool font_context_init(Font_Context* context, const char path[]);
+int font_context_init(Font_Context* context, const char path[]);
 void font_context_destroy(Font_Context* context);
 
 const Font_Table* font_table_select(const Font_Context* context, const char name[]);
