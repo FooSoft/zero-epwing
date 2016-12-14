@@ -48,7 +48,7 @@ typedef struct {
  * Helper functions
  */
 
-static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table, int flags) {
+static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode) {
     if (eb_seek_text(book, position) != EB_SUCCESS) {
         return NULL;
     }
@@ -57,17 +57,13 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
     ssize_t data_length = 0;
     EB_Error_Code error;
 
-    Hook_Params params = {};
-    params.table = table;
-    params.flags = flags;
-
     switch (mode) {
         case BOOK_MODE_TEXT:
             error = eb_read_text(
                 book,
                 NULL,
                 hookset,
-                &params,
+                NULL,
                 ARRSIZE(data) - 1,
                 data,
                 &data_length
@@ -78,7 +74,7 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
                 book,
                 NULL,
                 hookset,
-                &params,
+                NULL,
                 ARRSIZE(data) - 1,
                 data,
                 &data_length
@@ -97,13 +93,12 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
         return NULL;
     }
 
-    font_stub_decode(result, strlen(result) + 1, result);
     return result;
 }
 
-static Book_Block book_read_content(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode, const Font_Table* table, int flags) {
+static Book_Block book_read_content(EB_Book* book, EB_Hookset* hookset, const EB_Position* position, Book_Mode mode) {
     Book_Block block = {};
-    block.text = book_read(book, hookset, position, mode, table, flags);
+    block.text = book_read(book, hookset, position, mode);
     block.page = position->page;
     block.offset = position->offset;
     return block;
@@ -241,7 +236,7 @@ static void book_encode(json_t* book_json, const Book* book, int flags) {
  * Importing from EPWING
  */
 
-static void subbook_entries_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, const Font_Table* table, int flags) {
+static void subbook_entries_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
     if (subbook->entry_alloc == 0) {
         subbook->entry_alloc = 16384;
         subbook->entries = malloc(subbook->entry_alloc * sizeof(Book_Entry));
@@ -264,38 +259,36 @@ static void subbook_entries_import(Book_Subbook* subbook, EB_Book* eb_book, EB_H
             }
 
             Book_Entry* entry = subbook->entries + subbook->entry_count++;
-            entry->heading = book_read_content(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING, table, flags);
-            entry->text = book_read_content(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT, table, flags);
+            entry->heading = book_read_content(eb_book, eb_hookset, &hit->heading, BOOK_MODE_HEADING);
+            entry->text = book_read_content(eb_book, eb_hookset, &hit->text, BOOK_MODE_TEXT);
         }
     }
     while (hit_count > 0);
 }
 
-static void subbook_import(Book_Subbook* subbook, const Font_Context* context, EB_Book* eb_book, EB_Hookset* eb_hookset, int flags) {
-    const Font_Table* table = NULL;
+static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, int flags) {
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
-        table = font_table_select(context, subbook->title);
     }
 
     if (eb_have_copyright(eb_book)) {
         EB_Position position;
         if (eb_copyright(eb_book, &position) == EB_SUCCESS) {
-            subbook->copyright = book_read_content(eb_book, eb_hookset, &position, BOOK_MODE_TEXT, table, flags);
+            subbook->copyright = book_read_content(eb_book, eb_hookset, &position, BOOK_MODE_TEXT);
         }
     }
 
     if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
-        subbook_entries_import(subbook, eb_book, eb_hookset, table, flags);
+        subbook_entries_import(subbook, eb_book, eb_hookset);
     }
 
     if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
-        subbook_entries_import(subbook, eb_book, eb_hookset, table, flags);
+        subbook_entries_import(subbook, eb_book, eb_hookset);
     }
 
     if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
-        subbook_entries_import(subbook, eb_book, eb_hookset, table, flags);
+        subbook_entries_import(subbook, eb_book, eb_hookset);
     }
 }
 
@@ -340,7 +333,7 @@ int book_export(FILE* fp, const Book* book, int flags) {
 }
 
 
-int book_import(Book* book, const Font_Context* context, const char path[], int flags) {
+int book_import(Book* book, const char path[], int flags) {
     EB_Error_Code error;
     if ((error = eb_initialize_library()) != EB_SUCCESS) {
         fprintf(stderr, "Failed to initialize library: %s\n", eb_error_message(error));
@@ -408,7 +401,7 @@ int book_import(Book* book, const Font_Context* context, const char path[], int 
             for (int i = 0; i < book->subbook_count; ++i) {
                 Book_Subbook* subbook = book->subbooks + i;
                 if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                    subbook_import(subbook, context, &eb_book, &eb_hookset, flags);
+                    subbook_import(subbook, &eb_book, &eb_hookset, flags);
                 }
                 else {
                     fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));

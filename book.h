@@ -21,8 +21,6 @@
 
 #include <stdio.h>
 
-#include "font.h"
-
 /*
  * Types
  */
@@ -59,7 +57,7 @@ typedef struct {
 
 void book_init(Book* book);
 void book_free(Book* book);
-int book_import(Book* book, const Font_Context* context, const char path[], int flags);
+int book_import(Book* book, const char path[], int flags);
 int book_export(FILE* fp, const Book* book, int flags);
 
 #endif /* BOOK_H */

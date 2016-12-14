@@ -116,8 +116,8 @@ static EB_Error_Code hook_end_reference( /* EB_HOOK_END_REFERENCE */
     char ref[256];
     snprintf(ref, ARRSIZE(ref), "<end_reference page=%d offset=%d>", argv[1], argv[2]);
     ref[ARRSIZE(ref) - 1] = 0;
-    eb_write_text_string(book, ref);
 
+    eb_write_text_string(book, ref);
     return 0;
 }
 
@@ -130,15 +130,15 @@ static EB_Error_Code hook_narrow_font( /* EB_HOOK_NARROW_FONT */
     const unsigned int argv[]
 ) {
     (void)appendix;
+    (void)container;
     (void)code;
 
-    Hook_Params* params = (Hook_Params*)container;
-
+    char stub[32];
     assert(argc >= 1);
-    char stub[MAX_STUB_BYTES];
-    font_stub_encode(stub, ARRSIZE(stub), argv[0], params->table, FONT_WIDTH_NARROW, params->flags);
-    eb_write_text_string(book, stub);
+    snprintf(stub, ARRSIZE(stub), "{{n_%u}}", argv[0]);
+    stub[ARRSIZE(stub) - 1] = 0;
 
+    eb_write_text_string(book, stub);
     return 0;
 }
 
@@ -151,15 +151,15 @@ static EB_Error_Code hook_wide_font( /* EB_HOOK_WIDE_FONT */
     const unsigned int argv[]
 ) {
     (void)appendix;
+    (void)container;
     (void)code;
 
-    Hook_Params* params = (Hook_Params*)container;
+    char stub[32];
+    assert(argc >= 1);
+    snprintf(stub, ARRSIZE(stub), "{{w_%u}}", argv[0]);
+    stub[ARRSIZE(stub) - 1] = 0;
 
-    assert(argc > 0);
-    char stub[MAX_STUB_BYTES];
-    font_stub_encode(stub, ARRSIZE(stub), argv[0], params->table, FONT_WIDTH_WIDE, params->flags);
     eb_write_text_string(book, stub);
-
     return 0;
 }
 

@@ -21,7 +21,6 @@
 
 #include "util.h"
 #include "book.h"
-#include "font.h"
 
 /*
  * Entry point
@@ -29,24 +28,18 @@
 
 int main(int argc, char *argv[]) {
     const struct option options[] = {
-        { "font-table",   required_argument, NULL, 'f' },
         { "pretty-print", no_argument,       NULL, 'p' },
         { "markup",       no_argument,       NULL, 'm' },
         { "positions",    no_argument,       NULL, 's' },
-        { "font-tags",    no_argument,       NULL, 't' },
         { NULL,           0,                 NULL,  0  },
     };
 
     char* dict_path = NULL;
-    char* font_path = NULL;
     int flags = 0;
 
     int c = 0;
     while ((c = getopt_long(argc, argv, "f:d:pmst", options, NULL)) != -1) {
         switch (c) {
-            case 'f':
-                font_path = optarg;
-                break;
             case 'p':
                 flags |= FLAG_PRETTY_PRINT;
                 break;
@@ -55,9 +48,6 @@ int main(int argc, char *argv[]) {
                 break;
             case 's':
                 flags |= FLAG_POSITIONS;
-                break;
-            case 't':
-                flags |= FLAG_FONT_TAGS;
                 break;
             default:
                 return 1;
@@ -71,20 +61,14 @@ int main(int argc, char *argv[]) {
 
     dict_path = argv[optind];
 
-    Font_Context context;
-    if (!font_context_init(&context, font_path == 0 ? NULL : font_path)) {
-        return 1;
-    }
-
     Book book;
     book_init(&book);
 
     const int success =
-        book_import(&book, &context, dict_path, flags) &&
+        book_import(&book, dict_path, flags) &&
         book_export(stdout, &book, flags);
 
     book_free(&book);
 
-    font_context_destroy(&context);
     return success ? 0 : 1;
 }
