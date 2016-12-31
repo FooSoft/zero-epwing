@@ -3,7 +3,7 @@
 Zero-EPWING is a tool built to export easy to process JSON formatted UTF-8 data from dictionaries in
 [EPWING](https://ja.wikipedia.org/wiki/EPWING) format. This is a terrible format because:
 
-*   Closed and undocumented standard, reverse-engineered to an extent.
+*   It is based on a closed and undocumented standard.
 *   Not well supported as it isn't used anywhere else in the world.
 *   The only library for parsing this format, `libeb`, is abandoned.
 *   Data is stored in an inconsistent manner, with lots of duplication.
