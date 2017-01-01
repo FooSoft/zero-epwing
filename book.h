@@ -20,6 +20,7 @@
 #define BOOK_H
 
 #include <stdio.h>
+#include <eb/font.h>
 
 /*
  * Types
@@ -37,11 +38,26 @@ typedef struct {
 } Book_Entry;
 
 typedef struct {
+    unsigned char bitmap[EB_SIZE_WIDE_FONT_48];
+} Book_Glyph;
+
+typedef struct {
+    Book_Glyph* glyphs;
+    int         glyph_count;
+    int         glyph_size;
+    int         glyph_wide;
+} Book_Font;
+
+typedef struct {
     char*       title;
     Book_Block  copyright;
+
     Book_Entry* entries;
     int         entry_count;
     int         entry_alloc;
+
+    Book_Font* fonts;
+    int        font_count;
 } Book_Subbook;
 
 typedef struct {
