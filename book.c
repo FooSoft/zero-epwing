@@ -266,7 +266,7 @@ static void subbook_entries_import(Book_Subbook* subbook, EB_Book* eb_book, EB_H
     while (hit_count > 0);
 }
 
-static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, int flags) {
+static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
@@ -336,7 +336,7 @@ int book_export(FILE* fp, const Book* book, int flags) {
 int book_import(Book* book, const char path[], int flags) {
     EB_Error_Code error;
     if ((error = eb_initialize_library()) != EB_SUCCESS) {
-        fprintf(stderr, "Failed to initialize library: %s\n", eb_error_message(error));
+        fprintf(stderr, "error: failed to initialize library (%s)\n", eb_error_message(error));
         return 0;
     }
 
@@ -348,7 +348,7 @@ int book_import(Book* book, const char path[], int flags) {
     hooks_install(&eb_hookset, flags);
 
     if ((error = eb_bind(&eb_book, path)) != EB_SUCCESS) {
-        fprintf(stderr, "Failed to bind book: %s\n", eb_error_message(error));
+        fprintf(stderr, "error: failed to bind book (%s)\n", eb_error_message(error));
         eb_finalize_book(&eb_book);
         eb_finalize_hookset(&eb_hookset);
         eb_finalize_library();
@@ -373,7 +373,7 @@ int book_import(Book* book, const char path[], int flags) {
         }
     }
     else {
-        fprintf(stderr, "Failed to get character code: %s\n", eb_error_message(error));
+        fprintf(stderr, "error: failed to get character code (%s)\n", eb_error_message(error));
     }
 
     EB_Disc_Code disc_code;
@@ -391,7 +391,7 @@ int book_import(Book* book, const char path[], int flags) {
         }
     }
     else {
-        fprintf(stderr, "Failed to get disc code: %s\n", eb_error_message(error));
+        fprintf(stderr, "error: failed to get disc code (%s)\n", eb_error_message(error));
     }
 
     EB_Subbook_Code sub_codes[EB_MAX_SUBBOOKS];
@@ -401,16 +401,16 @@ int book_import(Book* book, const char path[], int flags) {
             for (int i = 0; i < book->subbook_count; ++i) {
                 Book_Subbook* subbook = book->subbooks + i;
                 if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                    subbook_import(subbook, &eb_book, &eb_hookset, flags);
+                    subbook_import(subbook, &eb_book, &eb_hookset);
                 }
                 else {
-                    fprintf(stderr, "Failed to set subbook: %s\n", eb_error_message(error));
+                    fprintf(stderr, "error: failed to set subbook (%s)\n", eb_error_message(error));
                 }
             }
         }
     }
     else {
-        fprintf(stderr, "Failed to get subbook list: %s\n", eb_error_message(error));
+        fprintf(stderr, "error: failed to get subbook list (%s)\n", eb_error_message(error));
     }
 
     eb_finalize_book(&eb_book);

@@ -28,10 +28,10 @@
 
 int main(int argc, char *argv[]) {
     const struct option options[] = {
-        { "pretty-print", no_argument,       NULL, 'p' },
-        { "markup",       no_argument,       NULL, 'm' },
-        { "positions",    no_argument,       NULL, 's' },
-        { NULL,           0,                 NULL,  0  },
+        { "pretty",    no_argument, NULL, 'p' },
+        { "markup",    no_argument, NULL, 'm' },
+        { "positions", no_argument, NULL, 's' },
+        { NULL,        0,           NULL,  0  },
     };
 
     char* dict_path = NULL;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (optind == argc) {
-        fprintf(stderr, "%s: dictionary path must be provided provided\n", argv[0]);
+        fprintf(stderr, "error: dictionary path was not provided\n");
         return 1;
     }
 
