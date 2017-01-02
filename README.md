@@ -1,14 +1,15 @@
 # Zero-EPWING #
 
 Zero-EPWING is a tool built to export easy to process JSON formatted UTF-8 data from dictionaries in
-[EPWING](https://ja.wikipedia.org/wiki/EPWING) format. This is a terrible format because:
+[EPWING](https://ja.wikipedia.org/wiki/EPWING) format. This is a terrible format for many reasons, some of which are
+outlined below:
 
 *   It is based on a closed and undocumented standard.
 *   Not well supported as it isn't used anywhere else in the world.
 *   The only library for parsing this format, `libeb`, is abandoned.
 *   Data is stored in an inconsistent manner, with lots of duplication.
 *   Text data is stored internally in the annoying EUC-JP encoding.
-*   Characters which cannot be encoded are represented by image files.
+*   Characters which cannot be encoded are represented by image bitmaps.
 
 Applications that parse EPWING formatted data traditionally use `libeb` to perform dictionary searches in place; dealing
 with quirks in the format and `libeb` in the runtime. Zero-EPWING takes a different approach -- extract all the data and
@@ -42,13 +43,13 @@ Although I have not yet made MacOS X builds, it should also, in principle, work.
 Zero-EPWING takes a single parameter, the directory of the EPWING dictionary to dump. It also supports the following
 optional flags:
 
-*   `--pretty-print` (`-p`): output pretty-printed JSON (useful for debugging).
+*   `--pretty` (`-p`): output pretty-printed JSON (useful for debugging).
 *   `--markup` (`-m`): markup the output with as much metadata as possible.
 *   `--positions` (`-s`): output *page* and *offset* data for each entry.
 
-Upon loading and processing the provided EPWING data, Zero-EPWING will output a UTF-8 encoded JSON file to stdout.
-Information about errors will be printed to stderr; serious errors will result in this application returning a non-zero
-exit code. A sample of the JSON data output is pretty-printed below for reference:
+Upon loading and processing the provided EPWING data, Zero-EPWING will output a UTF-8 encoded JSON file to `stdout`.
+Information about errors will be printed to `stderr`; serious errors will result in this application returning a
+non-zero exit code. A sample of the JSON data output is pretty-printed below for reference:
 
 ```
 {
