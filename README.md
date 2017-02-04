@@ -8,13 +8,13 @@ outlined below:
 *   Not well supported as it isn't used anywhere else in the world.
 *   The only library for parsing this format, `libeb`, is abandoned.
 *   Data is stored in an inconsistent manner, with lots of duplication.
-*   Text data is stored internally in the annoying EUC-JP encoding.
+*   Text data is represented using the annoying EUC-JP encoding.
 *   Characters which cannot be encoded are represented by image bitmaps.
 
-Applications that parse EPWING formatted data traditionally use `libeb` to perform dictionary searches in place; dealing
-with quirks in the format and `libeb` in the runtime. Zero-EPWING takes a different approach -- extract all the data and
-output it an sane intermediate format, like JSON. As everyone knows how to parse JSON, it is trivial to take this
-intermediate data and store it in a reasonable, industry standard representation.
+Most applications that parse EPWING data traditionally use `libeb` to perform dictionary searches in place; dealing with
+quirks in the format and `libeb` output is just part of the process. Zero-EPWING takes a different approach -- extract
+all the data and output it an sane intermediate format, like JSON. As everyone knows how to parse JSON, it is trivial to
+take this intermediate data and store it in a reasonable, industry standard representation.
 
 ![](https://foosoft.net/projects/zero-epwing/img/zero-wing.png)
 
@@ -24,19 +24,19 @@ intermediate data and store it in a reasonable, industry standard representation
 *   [CMake](https://cmake.org/)
 *   [GCC](https://gcc.gnu.org/)
 *   [Make](https://www.gnu.org/software/make/)
-*   [MinGW](http://www.mingw.org/) (for Windows)
+*   [MinGW](http://www.mingw.org/) (Windows only)
 
 ## Building ##
 
-The instructions below are for building on Linux; creating a Windows executable is similar with the exception that
-network support must be disabled on the modified `libeb` during configuration in order for it to compile and link.
-Although I have not yet made MacOS X builds, it should also, in principle, work.
+The instructions below are for building on Linux, Mac OS X, and Windows, provided your environment is already configured
+for development:
 
 1.  Clone the `https://github.com/FooSoft/zero-epwing` repository.
 2.  Initialize (`git submodule init`) and update (`git submodule update`) the project submodules.
-3.  Switch to the `eb` directory then execute `./configure` and `make` to build the modified `libeb`.
+3.  Switch to the `eb` directory and execute `./configure --disable-shared --disable-ebnet --disable-nls`.
+4.  While still in the `eb` directory, build the modified library by executing `make`.
 4.  Switch to the `jansson` directory then execute `cmake .` and `make`.
-5.  From the project root then execute `cmake .` and `make`.
+5.  From the project root directory, execute `cmake .` and `make`.
 
 ## Usage ##
 
