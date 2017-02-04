@@ -35,8 +35,8 @@ for development:
 2.  Initialize (`git submodule init`) and update (`git submodule update`) the project submodules.
 3.  Switch to the `eb` directory and execute `./configure --disable-shared --disable-ebnet --disable-nls`.
 4.  While still in the `eb` directory, build the modified library by executing `make`.
-4.  Switch to the `jansson` directory then execute `cmake .` and `make`.
-5.  From the project root directory, execute `cmake .` and `make`.
+5.  Switch to the `jansson` directory then execute `cmake .` and `make`.
+6.  From the project root directory, execute `cmake .` and `make`.
 
 ## Usage ##
 
