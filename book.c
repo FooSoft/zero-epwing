@@ -212,7 +212,7 @@ static void font_glyph_set_encode(json_t* glyph_set_json, const Book_Glyph_Set* 
     json_t* glyph_json_array = json_array();
     for (int i = 0; i < glyph_set->count; ++i) {
         json_t* glyph_json = json_object();
-        font_glyph_encode(glyph_json, &glyph_set->glyphs[i]);
+        font_glyph_encode(glyph_json, glyph_set->glyphs + i);
         json_array_append_new(glyph_json_array, glyph_json);
     }
 
@@ -357,12 +357,13 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
         for (;;) {
             if (font->narrow.count == glyph_alloc) {
                 glyph_alloc *= 2;
-                font->narrow.glyphs = realloc(font->narrow.glyphs, glyph_alloc);
+                font->narrow.glyphs = realloc(font->narrow.glyphs, sizeof(Book_Glyph) * glyph_alloc);
             }
 
-            Book_Glyph* glyph = &font->narrow.glyphs[font->narrow.count];
+            Book_Glyph* glyph = font->narrow.glyphs + font->narrow.count;
             glyph->code = font_code;
 
+            memset(glyph->bitmap, 0, sizeof(glyph->bitmap));
             if (eb_narrow_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
                 break;
             }
@@ -407,12 +408,13 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
         for (;;) {
             if (font->wide.count == glyph_alloc) {
                 glyph_alloc *= 2;
-                font->wide.glyphs = realloc(font->wide.glyphs, glyph_alloc);
+                font->wide.glyphs = realloc(font->wide.glyphs, sizeof(Book_Glyph) * glyph_alloc);
             }
 
-            Book_Glyph* glyph = &font->wide.glyphs[font->wide.count];
+            Book_Glyph* glyph = font->wide.glyphs + font->wide.count;
             glyph->code = font_code;
 
+            memset(glyph->bitmap, 0, sizeof(glyph->bitmap));
             if (eb_wide_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
                 break;
             }
@@ -456,7 +458,7 @@ static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* 
     if (flags & FLAG_FONTS) {
         const EB_Font_Code codes[] = {EB_FONT_16, EB_FONT_24, EB_FONT_30, EB_FONT_48};
         for (unsigned i = 0; i < ARRSIZE(codes); ++i) {
-            subbook_font_import(&subbook->fonts[i], eb_book, codes[i]);
+            subbook_font_import(subbook->fonts + i, eb_book, codes[i]);
         }
     }
 }
@@ -482,7 +484,7 @@ void book_free(Book* book) {
         }
 
         for (unsigned j = 0; j < ARRSIZE(subbook->fonts); ++j) {
-            const Book_Font* font = &subbook->fonts[j];
+            const Book_Font* font = subbook->fonts + j;
             free(font->narrow.glyphs);
             free(font->wide.glyphs);
         }
