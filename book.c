@@ -198,9 +198,9 @@ static void entry_encode(json_t* entry_json, const Book_Entry* entry, int flags)
     }
 }
 
-static void font_glyph_encode(json_t* glyph_json, const Book_Glyph* glyph) {
+static void font_glyph_encode(json_t* glyph_json, const Book_Glyph* glyph, int bitmap_size) {
     json_t* bitmap_json_array = json_array();
-    for (unsigned i = 0; i < ARRSIZE(glyph->bitmap); ++i) {
+    for (int i = 0; i < bitmap_size; ++i) {
         json_array_append_new(bitmap_json_array, json_integer(glyph->bitmap[i]));
     }
 
@@ -212,7 +212,7 @@ static void font_glyph_set_encode(json_t* glyph_set_json, const Book_Glyph_Set* 
     json_t* glyph_json_array = json_array();
     for (int i = 0; i < glyph_set->count; ++i) {
         json_t* glyph_json = json_object();
-        font_glyph_encode(glyph_json, glyph_set->glyphs + i);
+        font_glyph_encode(glyph_json, glyph_set->glyphs + i, glyph_set->bitmap_size);
         json_array_append_new(glyph_json_array, glyph_json);
     }
 
@@ -327,22 +327,27 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
     }
 
     do {
+        Book_Glyph_Set* glyph_set = &font->narrow;
         switch (code) {
             case EB_FONT_16:
-                font->narrow.width = EB_WIDTH_NARROW_FONT_16;
-                font->narrow.height = EB_HEIGHT_FONT_16;
+                glyph_set->width = EB_WIDTH_NARROW_FONT_16;
+                glyph_set->height = EB_HEIGHT_FONT_16;
+                glyph_set->bitmap_size = EB_SIZE_NARROW_FONT_16;
                 break;
             case EB_FONT_24:
-                font->narrow.width = EB_WIDTH_NARROW_FONT_24;
-                font->narrow.height = EB_HEIGHT_FONT_24;
+                glyph_set->width = EB_WIDTH_NARROW_FONT_24;
+                glyph_set->height = EB_HEIGHT_FONT_24;
+                glyph_set->bitmap_size = EB_SIZE_NARROW_FONT_24;
                 break;
             case EB_FONT_30:
-                font->narrow.width = EB_WIDTH_NARROW_FONT_30;
-                font->narrow.height = EB_HEIGHT_FONT_30;
+                glyph_set->width = EB_WIDTH_NARROW_FONT_30;
+                glyph_set->height = EB_HEIGHT_FONT_30;
+                glyph_set->bitmap_size = EB_SIZE_NARROW_FONT_30;
                 break;
             case EB_FONT_48:
-                font->narrow.width = EB_WIDTH_NARROW_FONT_48;
-                font->narrow.height = EB_HEIGHT_FONT_48;
+                glyph_set->width = EB_WIDTH_NARROW_FONT_48;
+                glyph_set->height = EB_HEIGHT_FONT_48;
+                glyph_set->bitmap_size = EB_SIZE_NARROW_FONT_48;
                 break;
         }
 
@@ -352,23 +357,22 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
         }
 
         int glyph_alloc = 256;
-        font->narrow.glyphs = malloc(sizeof(Book_Glyph) * glyph_alloc);
+        glyph_set->glyphs = malloc(sizeof(Book_Glyph) * glyph_alloc);
 
         for (;;) {
-            if (font->narrow.count == glyph_alloc) {
+            if (glyph_set->count == glyph_alloc) {
                 glyph_alloc *= 2;
-                font->narrow.glyphs = realloc(font->narrow.glyphs, sizeof(Book_Glyph) * glyph_alloc);
+                glyph_set->glyphs = realloc(glyph_set->glyphs, sizeof(Book_Glyph) * glyph_alloc);
             }
 
-            Book_Glyph* glyph = font->narrow.glyphs + font->narrow.count;
+            Book_Glyph* glyph = glyph_set->glyphs + glyph_set->count;
             glyph->code = font_code;
-
             memset(glyph->bitmap, 0, sizeof(glyph->bitmap));
             if (eb_narrow_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
                 break;
             }
 
-            ++font->narrow.count;
+            ++glyph_set->count;
 
             if (eb_forward_narrow_font_character(eb_book, 1, &font_code) != EB_SUCCESS) {
                 break;
@@ -378,22 +382,27 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
     while (0);
 
     do {
+        Book_Glyph_Set* glyph_set = &font->wide;
         switch (code) {
             case EB_FONT_16:
-                font->wide.width = EB_WIDTH_WIDE_FONT_16;
-                font->wide.height = EB_HEIGHT_FONT_16;
+                glyph_set->width = EB_WIDTH_WIDE_FONT_16;
+                glyph_set->height = EB_HEIGHT_FONT_16;
+                glyph_set->bitmap_size = EB_SIZE_WIDE_FONT_16;
                 break;
             case EB_FONT_24:
-                font->wide.width = EB_WIDTH_WIDE_FONT_24;
-                font->wide.height = EB_HEIGHT_FONT_24;
+                glyph_set->width = EB_WIDTH_WIDE_FONT_24;
+                glyph_set->height = EB_HEIGHT_FONT_24;
+                glyph_set->bitmap_size = EB_SIZE_WIDE_FONT_24;
                 break;
             case EB_FONT_30:
-                font->wide.width = EB_WIDTH_WIDE_FONT_30;
-                font->wide.height = EB_HEIGHT_FONT_30;
+                glyph_set->width = EB_WIDTH_WIDE_FONT_30;
+                glyph_set->height = EB_HEIGHT_FONT_30;
+                glyph_set->bitmap_size = EB_SIZE_WIDE_FONT_30;
                 break;
             case EB_FONT_48:
-                font->wide.width = EB_WIDTH_WIDE_FONT_48;
-                font->wide.height = EB_HEIGHT_FONT_48;
+                glyph_set->width = EB_WIDTH_WIDE_FONT_48;
+                glyph_set->height = EB_HEIGHT_FONT_48;
+                glyph_set->bitmap_size = EB_SIZE_WIDE_FONT_48;
                 break;
         }
 
@@ -403,23 +412,22 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
         }
 
         int glyph_alloc = 256;
-        font->wide.glyphs = malloc(sizeof(Book_Glyph) * glyph_alloc);
+        glyph_set->glyphs = malloc(sizeof(Book_Glyph) * glyph_alloc);
 
         for (;;) {
-            if (font->wide.count == glyph_alloc) {
+            if (glyph_set->count == glyph_alloc) {
                 glyph_alloc *= 2;
-                font->wide.glyphs = realloc(font->wide.glyphs, sizeof(Book_Glyph) * glyph_alloc);
+                glyph_set->glyphs = realloc(glyph_set->glyphs, sizeof(Book_Glyph) * glyph_alloc);
             }
 
-            Book_Glyph* glyph = font->wide.glyphs + font->wide.count;
+            Book_Glyph* glyph = glyph_set->glyphs + glyph_set->count;
             glyph->code = font_code;
-
             memset(glyph->bitmap, 0, sizeof(glyph->bitmap));
             if (eb_wide_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
                 break;
             }
 
-            ++font->wide.count;
+            ++glyph_set->count;
 
             if (eb_forward_wide_font_character(eb_book, 1, &font_code) != EB_SUCCESS) {
                 break;

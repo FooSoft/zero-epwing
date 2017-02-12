@@ -48,6 +48,7 @@ typedef struct {
 
 typedef struct {
     Book_Glyph* glyphs;
+    int         bitmap_size;
     int         width;
     int         height;
     int         count;
