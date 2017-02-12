@@ -249,7 +249,7 @@ static void entry_encode(json_t* entry_json, const Book_Entry* entry, int flags)
 static void font_glyph_encode(json_t* glyph_json, const Book_Glyph* glyph, int bitmap_size) {
     json_t* bitmap_json_array = json_array();
     for (int i = 0; i < bitmap_size; ++i) {
-        json_array_append_new(bitmap_json_array, json_integer(glyph->bitmap[i]));
+        json_array_append_new(bitmap_json_array, json_integer((unsigned char)glyph->bitmap[i]));
     }
 
     json_object_set_new(glyph_json, "bitmap", bitmap_json_array);
