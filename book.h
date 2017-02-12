@@ -42,14 +42,20 @@ typedef struct {
 } Book_Entry;
 
 typedef struct {
-    unsigned char bitmap[EB_SIZE_WIDE_FONT_48];
+    char bitmap[EB_SIZE_WIDE_FONT_48];
+    int  code;
 } Book_Glyph;
 
 typedef struct {
     Book_Glyph* glyphs;
-    int         glyph_count;
-    int         glyph_size;
-    int         glyph_wide;
+    int         width;
+    int         height;
+    int         count;
+} Book_Glyph_Set;
+
+typedef struct {
+    Book_Glyph_Set wide;
+    Book_Glyph_Set narrow;
 } Book_Font;
 
 typedef struct {
@@ -60,8 +66,7 @@ typedef struct {
     int         entry_count;
     int         entry_alloc;
 
-    Book_Font* fonts;
-    int        font_count;
+    Book_Font fonts[4];
 } Book_Subbook;
 
 typedef struct {

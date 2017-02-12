@@ -198,6 +198,43 @@ static void entry_encode(json_t* entry_json, const Book_Entry* entry, int flags)
     }
 }
 
+static void font_glyph_encode(json_t* glyph_json, const Book_Glyph* glyph) {
+    json_t* bitmap_json_array = json_array();
+    for (unsigned i = 0; i < ARRSIZE(glyph->bitmap); ++i) {
+        json_array_append_new(bitmap_json_array, json_integer(glyph->bitmap[i]));
+    }
+
+    json_object_set_new(glyph_json, "bitmap", bitmap_json_array);
+    json_object_set_new(glyph_json, "code", json_integer(glyph->code));
+}
+
+static void font_glyph_set_encode(json_t* glyph_set_json, const Book_Glyph_Set* glyph_set) {
+    json_t* glyph_json_array = json_array();
+    for (int i = 0; i < glyph_set->count; ++i) {
+        json_t* glyph_json = json_object();
+        font_glyph_encode(glyph_json, &glyph_set->glyphs[i]);
+        json_array_append_new(glyph_json_array, glyph_json);
+    }
+
+    json_object_set_new(glyph_set_json, "glyphs", glyph_json_array);
+    json_object_set_new(glyph_set_json, "width", json_integer(glyph_set->width));
+    json_object_set_new(glyph_set_json, "height", json_integer(glyph_set->height));
+}
+
+static void font_encode(json_t* font_json, const Book_Font* font) {
+    if (font->narrow.count > 0) {
+        json_t* narrow_json = json_object();
+        font_glyph_set_encode(narrow_json, &font->narrow);
+        json_object_set_new(font_json, "narrow", narrow_json);
+    }
+
+    if (font->wide.count > 0) {
+        json_t* wide_json = json_object();
+        font_glyph_set_encode(wide_json, &font->wide);
+        json_object_set_new(font_json, "wide", wide_json);
+    }
+}
+
 static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook, int flags) {
     if (subbook->title != NULL) {
         json_object_set_new(subbook_json, "title", json_string(subbook->title));
@@ -210,6 +247,20 @@ static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook, in
     if (flags & FLAG_POSITIONS) {
         json_object_set_new(subbook_json, "copyrightPage", json_integer(subbook->copyright.page));
         json_object_set_new(subbook_json, "copyrightOffset", json_integer(subbook->copyright.offset));
+    }
+
+    if (flags & FLAG_FONTS) {
+        json_t* font_json_array = json_array();
+        for (unsigned i = 0; i < ARRSIZE(subbook->fonts); ++i) {
+            const Book_Font* font = subbook->fonts + i;
+            if (font->wide.count > 0 || font->narrow.count) {
+                json_t* font_json = json_object();
+                font_encode(font_json, font);
+                json_array_append_new(font_json_array, font_json);
+            }
+        }
+
+        json_object_set_new(subbook_json, "fonts", font_json_array);
     }
 
     json_t* entry_json_array = json_array();
@@ -270,7 +321,113 @@ static void subbook_entries_import(Book_Subbook* subbook, EB_Book* eb_book, EB_H
     while (hit_count > 0);
 }
 
-static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset) {
+static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code code) {
+    if (eb_set_font(eb_book, code) != EB_SUCCESS) {
+        return;
+    }
+
+    do {
+        switch (code) {
+            case EB_FONT_16:
+                font->narrow.width = EB_WIDTH_NARROW_FONT_16;
+                font->narrow.height = EB_HEIGHT_FONT_16;
+                break;
+            case EB_FONT_24:
+                font->narrow.width = EB_WIDTH_NARROW_FONT_24;
+                font->narrow.height = EB_HEIGHT_FONT_24;
+                break;
+            case EB_FONT_30:
+                font->narrow.width = EB_WIDTH_NARROW_FONT_30;
+                font->narrow.height = EB_HEIGHT_FONT_30;
+                break;
+            case EB_FONT_48:
+                font->narrow.width = EB_WIDTH_NARROW_FONT_48;
+                font->narrow.height = EB_HEIGHT_FONT_48;
+                break;
+        }
+
+        int font_code = 0;
+        if (eb_narrow_font_start(eb_book, &font_code) != EB_SUCCESS) {
+            break;
+        }
+
+        int glyph_alloc = 256;
+        font->narrow.glyphs = malloc(sizeof(Book_Glyph) * glyph_alloc);
+
+        for (;;) {
+            if (font->narrow.count == glyph_alloc) {
+                glyph_alloc *= 2;
+                font->narrow.glyphs = realloc(font->narrow.glyphs, glyph_alloc);
+            }
+
+            Book_Glyph* glyph = &font->narrow.glyphs[font->narrow.count];
+            glyph->code = font_code;
+
+            if (eb_narrow_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
+                break;
+            }
+
+            ++font->narrow.count;
+
+            if (eb_forward_narrow_font_character(eb_book, 1, &font_code) != EB_SUCCESS) {
+                break;
+            }
+        }
+    }
+    while (0);
+
+    do {
+        switch (code) {
+            case EB_FONT_16:
+                font->wide.width = EB_WIDTH_WIDE_FONT_16;
+                font->wide.height = EB_HEIGHT_FONT_16;
+                break;
+            case EB_FONT_24:
+                font->wide.width = EB_WIDTH_WIDE_FONT_24;
+                font->wide.height = EB_HEIGHT_FONT_24;
+                break;
+            case EB_FONT_30:
+                font->wide.width = EB_WIDTH_WIDE_FONT_30;
+                font->wide.height = EB_HEIGHT_FONT_30;
+                break;
+            case EB_FONT_48:
+                font->wide.width = EB_WIDTH_WIDE_FONT_48;
+                font->wide.height = EB_HEIGHT_FONT_48;
+                break;
+        }
+
+        int font_code = 0;
+        if (eb_wide_font_start(eb_book, &font_code) != EB_SUCCESS) {
+            break;
+        }
+
+        int glyph_alloc = 256;
+        font->wide.glyphs = malloc(sizeof(Book_Glyph) * glyph_alloc);
+
+        for (;;) {
+            if (font->wide.count == glyph_alloc) {
+                glyph_alloc *= 2;
+                font->wide.glyphs = realloc(font->wide.glyphs, glyph_alloc);
+            }
+
+            Book_Glyph* glyph = &font->wide.glyphs[font->wide.count];
+            glyph->code = font_code;
+
+            if (eb_wide_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
+                break;
+            }
+
+            ++font->wide.count;
+
+            if (eb_forward_wide_font_character(eb_book, 1, &font_code) != EB_SUCCESS) {
+                break;
+            }
+        }
+    }
+    while (0);
+}
+
+static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* eb_hookset, int flags) {
     char title[EB_MAX_TITLE_LENGTH + 1];
     if (eb_subbook_title(eb_book, title) == EB_SUCCESS) {
         subbook->title = eucjp_to_utf8(title);
@@ -294,6 +451,14 @@ static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* 
     if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
         subbook_entries_import(subbook, eb_book, eb_hookset);
     }
+
+    memset(subbook->fonts, 0, sizeof(subbook->fonts));
+    if (flags & FLAG_FONTS) {
+        const EB_Font_Code codes[] = {EB_FONT_16, EB_FONT_24, EB_FONT_30, EB_FONT_48};
+        for (unsigned i = 0; i < ARRSIZE(codes); ++i) {
+            subbook_font_import(&subbook->fonts[i], eb_book, codes[i]);
+        }
+    }
 }
 
 /*
@@ -314,6 +479,12 @@ void book_free(Book* book) {
             Book_Entry* entry = subbook->entries + j;
             free(entry->heading.text);
             free(entry->text.text);
+        }
+
+        for (unsigned j = 0; j < ARRSIZE(subbook->fonts); ++j) {
+            const Book_Font* font = &subbook->fonts[j];
+            free(font->narrow.glyphs);
+            free(font->wide.glyphs);
         }
 
         free(subbook->entries);
@@ -405,7 +576,7 @@ int book_import(Book* book, const char path[], int flags) {
             for (int i = 0; i < book->subbook_count; ++i) {
                 Book_Subbook* subbook = book->subbooks + i;
                 if ((error = eb_set_subbook(&eb_book, sub_codes[i])) == EB_SUCCESS) {
-                    subbook_import(subbook, &eb_book, &eb_hookset);
+                    subbook_import(subbook, &eb_book, &eb_hookset, flags);
                 }
                 else {
                     fprintf(stderr, "error: failed to set subbook (%s)\n", eb_error_message(error));
