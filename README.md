@@ -31,25 +31,28 @@ take this intermediate data and store it in a reasonable, industry standard repr
 The instructions below are for building on Linux, Mac OS X, and Windows, provided your environment is already configured
 for development:
 
-1.  Clone the `https://github.com/FooSoft/zero-epwing` repository.
-2.  Initialize (`git submodule init`) and update (`git submodule update`) the project submodules.
-3.  Switch to the `eb` directory and execute `./configure --disable-shared --disable-ebnet --disable-nls`.
-4.  While still in the `eb` directory, build the modified library by executing `make`.
-5.  Switch to the `jansson` directory then execute `cmake .` and `make`.
-6.  From the project root directory, execute `cmake .` and `make`.
+1.  Clone the repository by executing `git clone https://github.com/FooSoft/zero-epwing`.
+2.  Initialize the git submodules by executing `git submodule init`.
+3.  Pull down the submodule data by executing `git submodule update`.
+4.  Switch to the `eb` directory and execute `./configure --disable-shared --disable-ebnet --disable-nls`.
+5.  While still in the `eb` directory, build the modified library by executing `make`.
+6.  Switch to the `jansson` directory then execute `cmake .` and `make`.
+7.  From the project root directory, execute `cmake .` and `make`.
 
 ## Usage ##
 
 Zero-EPWING takes a single parameter, the directory of the EPWING dictionary to dump. It also supports the following
 optional flags:
 
-*   `--pretty` (`-p`): output pretty-printed JSON (useful for debugging).
+*   `--entries` (`-e`): output dictionary entry data (most common option).
+*   `--fonts` (`-f`): output output font bitmap data (useful for OCR).
 *   `--markup` (`-m`): markup the output with as much metadata as possible.
 *   `--positions` (`-s`): output *page* and *offset* data for each entry.
+*   `--pretty` (`-p`): output pretty-printed JSON (useful for debugging).
 
-Upon loading and processing the provided EPWING data, Zero-EPWING will output a UTF-8 encoded JSON file to `stdout`.
-Information about errors will be printed to `stderr`; serious errors will result in this application returning a
-non-zero exit code. A sample of the JSON data output is pretty-printed below for reference:
+Upon loading and processing the requested EPWING data, Zero-EPWING will output a UTF-8 encoded JSON file to `stdout`.
+Diagnostic information about errors will be printed to `stderr`. Serious errors will result in this application
+returning a non-zero exit code. A sample of the JSON dictionary entry data output is pretty-printed below for reference.
 
 ```
 {
@@ -71,14 +74,15 @@ non-zero exit code. A sample of the JSON data output is pretty-printed below for
                 ...
 ```
 
-You may have noticed the unusual-looking double curly bracket markers (such as `{{w_50035}}`). Remember what I mentioned
-about certain characters being represented by image files? There are two graphical fonts in each dictionary, narrow and
-wide. Whenever a character cannot be encoded as text, a glyph is used in its place. These font indices cannot be
-converted directly to characters, differ from one dictionary to another, and short of performing OCR, you must build
-tables to map these font indices to Unicode characters yourself. Zero-EWPING has no means to map these font glyphs to
-Unicode by itself, and instead places inline markers in the form of `{{w_xxxx}}` and `{{n_xxxx}}` in the output,
-specifying the referenced indices of the wide or narrow fonts respectively. The font glyphs can be dumped with the
-`ebfont` sample application distributed with `libeb`, making the creation of these mappings tedious but possible.
+You may have noticed the unusual-looking double curly bracket markers such as `{{w_50035}}`. Remember what I mentioned
+about certain characters being represented by image files? There are two graphical fonts sets in each dictionary: narrow
+and wide. Both of these font sets are available in four sizes: 24, 30, 36, and 48 pixels. Whenever a character cannot be
+encoded as text, a glyph is used in its place. These font indices cannot be converted directly to characters, differ
+from one dictionary to another, and must be manually mapped to Unicode character tables. Zero-EWPING has no facility to
+map these font glyphs to Unicode by itself, and instead places inline markers in the form of `{{w_xxxx}}` and
+`{{n_xxxx}}` in the output, specifying the referenced indices of the wide or narrow fonts respectively.
+
+The bitmaps for these font glyphs can be dumped by executing this application with the `--fonts` command line argument.
 
 ## License ##
 
