@@ -28,8 +28,9 @@
 #include "util.h"
 
 #include "eb/eb/eb.h"
-#include "eb/eb/error.h"
+#include "eb/eb/font.h"
 #include "eb/eb/text.h"
+#include "eb/eb/error.h"
 
 #include "jansson/include/jansson.h"
 
@@ -42,11 +43,58 @@ typedef enum {
     BOOK_MODE_HEADING,
 } Book_Mode;
 
-typedef struct {
+typedef struct Page {
     int* offsets;
     int  offset_count;
     int  offset_alloc;
 } Page;
+
+typedef struct Book_Block {
+    char* text;
+    int   page;
+    int   offset;
+} Book_Block;
+
+typedef struct Book_Entry{
+    Book_Block heading;
+    Book_Block text;
+} Book_Entry;
+
+typedef struct Book_Glyph {
+    char bitmap[EB_SIZE_WIDE_FONT_48];
+    int  code;
+} Book_Glyph;
+
+typedef struct Book_Glyph_Set {
+    Book_Glyph* glyphs;
+    int         bitmap_size;
+    int         width;
+    int         height;
+    int         count;
+} Book_Glyph_Set;
+
+typedef struct Book_Font {
+    Book_Glyph_Set wide;
+    Book_Glyph_Set narrow;
+} Book_Font;
+
+typedef struct Book_Subbook {
+    char*       title;
+    Book_Block  copyright;
+
+    Book_Entry* entries;
+    int         entry_count;
+    int         entry_alloc;
+
+    Book_Font fonts[4];
+} Book_Subbook;
+
+typedef struct Book {
+    char          char_code[32];
+    char          disc_code[32];
+    Book_Subbook* subbooks;
+    int           subbook_count;
+} Book;
 
 /*
  * Helper functions
@@ -478,11 +526,11 @@ static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* 
  * imported functions
  */
 
-void book_init(Book* book) {
-    memset(book, 0, sizeof(Book));
+Book* book_create() {
+    return calloc(1, sizeof(Book));
 }
 
-void book_free(Book* book) {
+void book_destroy(Book* book) {
     for (int i = 0; i < book->subbook_count; ++i) {
         Book_Subbook* subbook = book->subbooks + i;
         free(subbook->title);

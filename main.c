@@ -73,14 +73,11 @@ int main(int argc, char *argv[]) {
 
     dict_path = argv[optind];
 
-    Book book;
-    book_init(&book);
-
+    Book* book = book_create();
     const int success =
-        book_import(&book, dict_path, flags) &&
-        book_export(stdout, &book, flags);
-
-    book_free(&book);
+        book_import(book, dict_path, flags) &&
+        book_export(stdout, book, flags);
+    book_destroy(book);
 
     return success ? 0 : 1;
 }
