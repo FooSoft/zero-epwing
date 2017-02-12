@@ -263,14 +263,16 @@ static void subbook_encode(json_t* subbook_json, const Book_Subbook* subbook, in
         json_object_set_new(subbook_json, "fonts", font_json_array);
     }
 
-    json_t* entry_json_array = json_array();
-    for (int i = 0; i < subbook->entry_count; ++i) {
-        json_t* entry_json = json_object();
-        entry_encode(entry_json, subbook->entries + i, flags);
-        json_array_append_new(entry_json_array, entry_json);
-    }
+    if (flags & FLAG_ENTRIES) {
+        json_t* entry_json_array = json_array();
+        for (int i = 0; i < subbook->entry_count; ++i) {
+            json_t* entry_json = json_object();
+            entry_encode(entry_json, subbook->entries + i, flags);
+            json_array_append_new(entry_json_array, entry_json);
+        }
 
-    json_object_set_new(subbook_json, "entries", entry_json_array);
+        json_object_set_new(subbook_json, "entries", entry_json_array);
+    }
 }
 
 static void book_encode(json_t* book_json, const Book* book, int flags) {
@@ -367,7 +369,7 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
 
             Book_Glyph* glyph = glyph_set->glyphs + glyph_set->count;
             glyph->code = font_code;
-            memset(glyph->bitmap, 0, sizeof(glyph->bitmap));
+            memset(glyph->bitmap, 0, glyph_set->bitmap_size);
             if (eb_narrow_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
                 break;
             }
@@ -422,7 +424,7 @@ static void subbook_font_import(Book_Font* font, EB_Book* eb_book, EB_Font_Code 
 
             Book_Glyph* glyph = glyph_set->glyphs + glyph_set->count;
             glyph->code = font_code;
-            memset(glyph->bitmap, 0, sizeof(glyph->bitmap));
+            memset(glyph->bitmap, 0, glyph_set->bitmap_size);
             if (eb_wide_font_character_bitmap(eb_book, font_code, glyph->bitmap) != EB_SUCCESS) {
                 break;
             }
@@ -450,19 +452,20 @@ static void subbook_import(Book_Subbook* subbook, EB_Book* eb_book, EB_Hookset* 
         }
     }
 
-    if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
-        subbook_entries_import(subbook, eb_book, eb_hookset);
+    if (flags & FLAG_ENTRIES) {
+        if (eb_search_all_alphabet(eb_book) == EB_SUCCESS) {
+            subbook_entries_import(subbook, eb_book, eb_hookset);
+        }
+
+        if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
+            subbook_entries_import(subbook, eb_book, eb_hookset);
+        }
+
+        if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
+            subbook_entries_import(subbook, eb_book, eb_hookset);
+        }
     }
 
-    if (eb_search_all_kana(eb_book) == EB_SUCCESS) {
-        subbook_entries_import(subbook, eb_book, eb_hookset);
-    }
-
-    if (eb_search_all_asis(eb_book) == EB_SUCCESS) {
-        subbook_entries_import(subbook, eb_book, eb_hookset);
-    }
-
-    memset(subbook->fonts, 0, sizeof(subbook->fonts));
     if (flags & FLAG_FONTS) {
         const EB_Font_Code codes[] = {EB_FONT_16, EB_FONT_24, EB_FONT_30, EB_FONT_48};
         for (unsigned i = 0; i < ARRSIZE(codes); ++i) {

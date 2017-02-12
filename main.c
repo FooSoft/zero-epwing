@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
         { "markup",    no_argument, NULL, 'm' },
         { "positions", no_argument, NULL, 's' },
         { "fonts",     no_argument, NULL, 'f' },
+        { "entries",   no_argument, NULL, 'e' },
         { NULL,        0,           NULL,  0  },
     };
 
@@ -56,6 +57,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'f':
                 flags |= FLAG_FONTS;
+                break;
+            case 'e':
+                flags |= FLAG_ENTRIES;
                 break;
             default:
                 return 1;

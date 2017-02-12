@@ -34,6 +34,7 @@ enum {
     FLAG_HOOK_MARKUP  = 1 << 1,
     FLAG_POSITIONS    = 1 << 2,
     FLAG_FONTS        = 1 << 3,
+    FLAG_ENTRIES      = 1 << 4,
 };
 
 #endif /* UTIL_H */
