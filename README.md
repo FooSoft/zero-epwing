@@ -86,4 +86,4 @@ The bitmaps for these font glyphs can be dumped by executing this application wi
 
 ## License ##
 
-MIT
+GPL
