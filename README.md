@@ -18,7 +18,17 @@ take this intermediate data and store it in a reasonable, industry standard repr
 
 ![](https://foosoft.net/projects/zero-epwing/img/zero-wing.png)
 
-## Requirements ##
+## Installation ##
+
+Pre-built binaries are available for Linux, Mac OS X, and Windows:
+
+*   [zero-epwing_linux.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_linux.tar.gz)
+*   [zero-epwing_darwin.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_darwin.tar.gz)
+*   [zero-epwing_windows.zip](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_windows.zip)
+
+## Building ##
+
+Prepare your development environment by making sure the following tools are set up:
 
 *   [Autotools](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html)
 *   [CMake](https://cmake.org/)
@@ -26,10 +36,7 @@ take this intermediate data and store it in a reasonable, industry standard repr
 *   [Make](https://www.gnu.org/software/make/)
 *   [MinGW](http://www.mingw.org/) (Windows only)
 
-## Building ##
-
-The instructions below are for building on Linux, Mac OS X, and Windows, provided your environment is already configured
-for development:
+Once your system is configured, follow the steps below to create builds:
 
 1.  Clone the repository by executing `git clone https://github.com/FooSoft/zero-epwing`.
 2.  Initialize the git submodules by executing `git submodule init`.
