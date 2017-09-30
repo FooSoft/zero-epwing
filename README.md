@@ -61,24 +61,27 @@ Upon loading and processing the requested EPWING data, Zero-EPWING will output a
 Diagnostic information about errors will be printed to `stderr`. Serious errors will result in this application
 returning a non-zero exit code. A sample of the JSON dictionary entry data output is pretty-printed below for reference.
 
-```
+```json
 {
     "charCode": "jisx0208",
     "discCode": "epwing",
     "subbooks": [
         {
             "title": "大辞泉",
-            "copyright": "CD-ROM版大辞泉　1997年4月10日 第1版発行\n\n監　修　松村　明\n発行者　鈴木俊彦\n発行所...
+            "copyright": "CD-ROM版大辞泉　1997年4月10日 第1版発行\n\n監　修　松村　明\n発行者　鈴木俊彦\n発行所...",
             "entries": [
                 {
                     "heading": "亜",
-                    "text": "亜\n［音］ア\n［訓］つ‐ぐ\n［部首］二\n［総画数］７\n［コード］区点...
+                    "text": "亜\n［音］ア\n［訓］つ‐ぐ\n［部首］二\n［総画数］７\n［コード］区点..."
                 },
                 {
                     "heading": "あ",
-                    "text": "あ\n{{w_50275}}\n{{w_50035}}五十音図ア行の第一音。五母音の一。後舌の開母音...
-                },
-                ...
+                    "text": "あ\n{{w_50275}}\n{{w_50035}}五十音図ア行の第一音。五母音の一。後舌の開母音..."
+                }
+            ]
+        }
+    ]
+}
 ```
 
 You may have noticed the unusual-looking double curly bracket markers such as `{{w_50035}}`. Remember what I mentioned
