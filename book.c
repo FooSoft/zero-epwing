@@ -101,7 +101,7 @@ static char* book_read(EB_Book* book, EB_Hookset* hookset, const EB_Position* po
         return NULL;
     }
 
-    char data[10240] = {};
+    static char data[1024000] = {};
     ssize_t data_length = 0;
     EB_Error_Code error;
 
