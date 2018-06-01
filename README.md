@@ -38,13 +38,15 @@ Prepare your development environment by making sure the following tools are set 
 
 Once your system is configured, follow the steps below to create builds:
 
-1.  Clone the repository by executing `git clone https://github.com/FooSoft/zero-epwing`.
-2.  Initialize the git submodules by executing `git submodule init`.
-3.  Pull down the submodule data by executing `git submodule update`.
-4.  Switch to the `eb` directory and execute `./configure --disable-shared --disable-ebnet --disable-nls`.
-5.  While still in the `eb` directory, build the modified library by executing `make`.
-6.  Switch to the `jansson` directory then execute `cmake .` and `make`.
-7.  From the project root directory, execute `cmake .` and `make`.
+1.  Clone the repository by executing
+    ```
+    git clone --recurse-submodules https://github.com/FooSoft/zero-epwing
+    ```
+2.  Prepare the project. From the project root directory, execute
+    ```
+    cmake . -Bbuild && cmake --build build --
+    ```
+3.  Find the executable in the `build` directory.
 
 ## Usage ##
 
@@ -108,4 +110,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
