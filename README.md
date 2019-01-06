@@ -22,9 +22,9 @@ take this intermediate data and store it in a reasonable, industry standard repr
 
 Pre-built binaries are available for Linux, Mac OS X, and Windows:
 
-*   [zero-epwing_linux.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_linux.tar.gz)
-*   [zero-epwing_darwin.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_darwin.tar.gz)
-*   [zero-epwing_windows.zip](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_windows.zip)
+*   [zero-epwing\_linux.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_linux.tar.gz)
+*   [zero-epwing\_darwin.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_darwin.tar.gz)
+*   [zero-epwing\_windows.zip](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_windows.zip)
 
 ## Building ##
 
