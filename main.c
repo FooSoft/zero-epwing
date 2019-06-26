@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     int flags = 0;
 
     int c = 0;
-    while ((c = getopt_long(argc, argv, "f:e:pmst", options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "fepmst", options, NULL)) != -1) {
         switch (c) {
             case 'p':
                 flags |= FLAG_PRETTY_PRINT;
