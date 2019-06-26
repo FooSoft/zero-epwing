@@ -9,6 +9,7 @@ ExternalProject_Add(
 	PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/eb
 	BUILD_COMMAND make
 	BUILD_IN_SOURCE 1
+	INSTALL_COMMAND ""
 	)
 include_directories(eb ${CMAKE_BINARY_DIR})
 option(JANSSON_EXAMPLES "" OFF)
