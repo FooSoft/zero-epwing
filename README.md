@@ -1,4 +1,4 @@
-# Zero-EPWING #
+# Zero-EPWING
 
 Zero-EPWING is a tool built to export easy to process JSON formatted UTF-8 data from dictionaries in
 [EPWING](https://ja.wikipedia.org/wiki/EPWING) format. This is a terrible format for many reasons, some of which are
@@ -18,7 +18,7 @@ take this intermediate data and store it in a reasonable, industry standard repr
 
 ![](https://foosoft.net/projects/zero-epwing/img/zero-wing.png)
 
-## Installation ##
+## Installation
 
 Pre-built binaries are available for Linux, Mac OS X, and Windows:
 
@@ -26,7 +26,7 @@ Pre-built binaries are available for Linux, Mac OS X, and Windows:
 *   [zero-epwing\_darwin.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_darwin.tar.gz)
 *   [zero-epwing\_windows.zip](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_windows.zip)
 
-## Building ##
+## Building
 
 Prepare your development environment by making sure the following tools are set up:
 
@@ -48,7 +48,7 @@ Once your system is configured, follow the steps below to create builds:
     ```
 3.  Find the executable in the `build` directory.
 
-## Usage ##
+## Usage
 
 Zero-EPWING takes a single parameter, the directory of the EPWING dictionary to dump. It also supports the following
 optional flags:
