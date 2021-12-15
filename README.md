@@ -1,3 +1,12 @@
+<!-- +++
+Area = "projects"
+GitHub = "zero-epwing"
+Layout = "page"
+Tags = ["c", "epwing", "jansson", "japanese", "libeb", "gpl license", "zero-epwing"]
+Description = "Sane data exporter for an insane dictionary format."
+Collection = "ProjectsComplete"
++++ -->
+
 # Zero-EPWING
 
 Zero-EPWING is a tool built to export easy to process JSON formatted UTF-8 data from dictionaries in
@@ -16,15 +25,12 @@ quirks in the format and `libeb` output is just part of the process. Zero-EPWING
 all the data and output it an sane intermediate format, like JSON. As everyone knows how to parse JSON, it is trivial to
 take this intermediate data and store it in a reasonable, industry standard representation.
 
-![](https://foosoft.net/projects/zero-epwing/img/zero-wing.png)
+![](img/zero-wing.png)
 
 ## Installation
 
-Pre-built binaries are available for Linux, Mac OS X, and Windows:
-
-*   [zero-epwing\_linux.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_linux.tar.gz)
-*   [zero-epwing\_darwin.tar.gz](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_darwin.tar.gz)
-*   [zero-epwing\_windows.zip](https://foosoft.net/projects/zero-epwing/dl/zero-epwing_windows.zip)
+Pre-built binaries are available for Linux, Mac OS X, and Windows on the [project
+page](https://github.com/FooSoft/zero-epwing/releases).
 
 ## Building
 
