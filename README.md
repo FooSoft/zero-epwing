@@ -1,12 +1,3 @@
-<!-- +++
-Area = "projects"
-GitHub = "zero-epwing"
-Layout = "page"
-Tags = ["c", "epwing", "jansson", "japanese", "libeb", "gpl license", "zero-epwing"]
-Description = "Sane data exporter for an insane dictionary format."
-Collection = "ProjectsComplete"
-+++ -->
-
 # Zero-EPWING
 
 Zero-EPWING is a tool built to export easy to process JSON formatted UTF-8 data from dictionaries in
