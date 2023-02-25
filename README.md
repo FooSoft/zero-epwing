@@ -1,5 +1,8 @@
 # Zero-EPWING
 
+*Note: this project is no longer maintained. Please see [this
+post](https://foosoft.net/posts/sunsetting-the-yomichan-project/) for more information.*
+
 Zero-EPWING is a tool built to export easy to process JSON formatted UTF-8 data from dictionaries in
 [EPWING](https://ja.wikipedia.org/wiki/EPWING) format. This is a terrible format for many reasons, some of which are
 outlined below:
